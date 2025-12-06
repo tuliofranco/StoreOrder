@@ -13,6 +13,9 @@ public class Order
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? ClosedAt { get; private set; }
 
+    public DateTime? DeletedAt { get; private set; }
+
+    public List<OrderItem> Items { get; private set; } = new();
     public Money Total { get; private set; }
 
     private Order() { }
@@ -28,6 +31,7 @@ public class Order
             OrderNumber = orderNumber,
             Status = OrderStatus.Open,
             CreatedAt = now,
+            Items = new List<OrderItem>(),
             Total = Money.FromDecimal(0)
         };
     }

@@ -6,7 +6,7 @@ public readonly record struct OrderNumber
 {
     public string Value { get; }
 
-    private OrderNumber(string value)
+    public OrderNumber(string value)
     {
         Value = value;
     }
