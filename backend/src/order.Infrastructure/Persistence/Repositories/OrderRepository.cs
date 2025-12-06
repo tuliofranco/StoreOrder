@@ -27,4 +27,14 @@ public class OrderRepository : IOrderRepository
 
         return order;
     }
+
+    public async Task<IReadOnlyList<OrderEntity?>> ListOrdersAsync(CancellationToken ct = default)
+    {
+
+        return  await _db.Orders
+                    .AsNoTracking()
+                    .Where(o => o.DeletedAt == null)
+                    .OrderByDescending(o => o.CreatedAt)
+                    .ToListAsync(ct);
+    }
 }

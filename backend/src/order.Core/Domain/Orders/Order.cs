@@ -13,6 +13,8 @@ public class Order
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? ClosedAt { get; private set; }
 
+    public DateTime? DeletedAt { get; private set; }
+
     public List<OrderItem> Items { get; private set; } = new();
     public Money Total { get; private set; }
 

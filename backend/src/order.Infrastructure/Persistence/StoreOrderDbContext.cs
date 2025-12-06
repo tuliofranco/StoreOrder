@@ -56,6 +56,7 @@ public class StoreOrderDbContext : DbContext
         order.Property(o => o.CreatedAt);
         order.Property(o => o.UpdatedAt);
         order.Property(o => o.ClosedAt);
+        order.Property(o => o.DeletedAt);
 
 
         order.HasMany(o => o.Items)
