@@ -20,6 +20,9 @@ public readonly record struct OrderNumber
         var value = $"{date}{millis}-{random}";
         return new OrderNumber(value);
     }
+    
+    public static OrderNumber FromString(string value)
+        => new OrderNumber(value);
 
     public override string ToString() => Value;
 }
