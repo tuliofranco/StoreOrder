@@ -3,3 +3,5 @@
 [Bb]in/
 [Ll]og/
 *.log
+
+.vscode/
