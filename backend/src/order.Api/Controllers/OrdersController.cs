@@ -1,7 +1,10 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Order.Core.Application.UseCases.CreateOrder;
+using Order.Core.Application.UseCases.GetOrderByOrNumber;
 using Order.Api.ViewModels;
+using Order.Api.Extensions;
+
 
 namespace Order.Api.Controllers;
 
@@ -28,6 +31,37 @@ public class OrdersController : ControllerBase
         {
             return StatusCode(500, new ResultViewModel<CreateOrderResponse>("001X001 - Falha interna no servidor"));
         }
+    }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetOrder(string id, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<GetOrderResponse>(ModelState.GetErrors()));
+        try
+        {
+            var result = await _mediator.Send(new GetOrderQuery(id), ct);
+            return Ok(new ResultViewModel<GetOrderResponse>(result));
+        }
+        catch
+        {
+            return NotFound(new ResultViewModel<string>("Order not found"));
+        }
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAllOrders(string id, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<GetOrderResponse>(ModelState.GetErrors()));
+        try
+        {
+            var result = await _mediator.Send(new GetOrderQuery(id), ct);
+            return Ok(new ResultViewModel<GetOrderResponse>(result));
+        }
+        catch
+        {
+            return NotFound(new ResultViewModel<string>("Order not found"));
+        }
     }
 }
