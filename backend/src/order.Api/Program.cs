@@ -32,7 +32,7 @@ builder.Services.AddInfrastructure();
 
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(Order.Core.Application.UseCases.CreateOrder.CreateOrderCommand).Assembly)
+    cfg.RegisterServicesFromAssembly(typeof(Order.Core.Application.UseCases.Orders.CreateOrder.CreateOrderCommand).Assembly)
 );
 
 var app = builder.Build();

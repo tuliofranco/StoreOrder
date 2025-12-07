@@ -27,23 +27,28 @@ public class OrderItem
         Id = Guid.NewGuid();
         OrderId = orderId;
         Description = description.Trim();
-        UnitPrice = unitPrice; // aqui você SEMPRE passa um Money válido
+        UnitPrice = unitPrice;
         Quantity = quantity;
     }
 
-    public static OrderItem Create(
+    internal static OrderItem Create(
         Guid orderId,
         string description,
         Money unitPrice,
         int quantity
     ) => new(orderId, description, unitPrice, quantity);
 
-    public void IncreaseQuantity(int quantity)
+    public void ChangeQuantity(int delta)
     {
-        if (quantity <= 0)
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
+        if (delta == 0)
+            return;
 
-        Quantity += quantity;
+        int newQuantity = Quantity + delta;
+
+        if (newQuantity < 0)
+            throw new InvalidOperationException("Quantity cannot be zero or negative.");
+
+        Quantity = newQuantity;
     }
 
     public Money GetTotal() => Subtotal;

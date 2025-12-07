@@ -3,7 +3,7 @@ using Order.Core.Application.Abstractions;
 using Order.Core.Application.Abstractions.Repositories;
 using OrderEntity = Order.Core.Domain.Orders.Order;
 
-namespace Order.Core.Application.UseCases.CreateOrder;
+namespace Order.Core.Application.UseCases.Orders.CreateOrder;
 
 public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, CreateOrderResponse>
 {

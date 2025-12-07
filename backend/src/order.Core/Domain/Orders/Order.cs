@@ -13,7 +13,6 @@ public class Order
     public DateTime? UpdatedAt { get; private set; }
     public DateTime? ClosedAt { get; private set; }
     public DateTime? DeletedAt { get; private set; }
-
     public List<OrderItem> Items { get; private set; } = new();
     public Money Total { get; private set; }
 
@@ -30,58 +29,44 @@ public class Order
             OrderNumber = orderNumber,
             Status = OrderStatus.Open,
             CreatedAt = now,
-            Items = new List<OrderItem>(),
             Total = Money.FromDecimal(0)
         };
     }
 
-    public void AddItem(string description, Money unitPrice, int quantity)
+    public void AddItem(OrderItem item)
     {
-        if (Status != OrderStatus.Open)
-            throw new InvalidOperationException("Only open orders can receive items.");
+        Items.Add(item);
+        Total = Total.Add(item.Subtotal);
+        UpdatedAt = DateTime.UtcNow;
+    }
+    public void UpdateItemQuantity(OrderItem item, int delta)
+    {
+        var oldSubtotal = item.Subtotal;
 
-        if (string.IsNullOrWhiteSpace(description))
-            throw new ArgumentException("Description is required.", nameof(description));
+        item.ChangeQuantity(delta);
 
-        if (quantity <= 0)
-            throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
-
-        var existing = Items.FirstOrDefault(i =>
-            i.Description.Equals(description, StringComparison.OrdinalIgnoreCase) &&
-            i.UnitPrice.Equals(unitPrice));
-
-        if (existing is null)
+        if (item.Quantity == 0)
         {
-            var item = OrderItem.Create(
-                orderId: Id,
-                description: description,
-                unitPrice: unitPrice,
-                quantity: quantity
-            );
-
-            Items.Add(item);
+            Items.Remove(item);
+            Total = Total.Subtract(oldSubtotal);
         }
         else
         {
-            existing.IncreaseQuantity(quantity);
+            var newSubtotal = item.Subtotal;
+
+            Total = Total
+                .Subtract(oldSubtotal)
+                .Add(newSubtotal);
         }
 
-        RecalculateTotal();
         UpdatedAt = DateTime.UtcNow;
     }
 
-    private void RecalculateTotal()
+    public void RemoveItem(OrderItem item)
     {
-        if (Items.Count == 0)
-        {
-            Total = Money.FromDecimal(0);
-            return;
-        }
+        Total = Total.Subtract(item.Subtotal);
 
-        var totalAmount = Items
-            .Select(i => i.GetTotal().Amount)
-            .Sum();
-
-        Total = Money.FromDecimal(totalAmount);
+        Items.Remove(item);
+        UpdatedAt = DateTime.UtcNow;
     }
 }
