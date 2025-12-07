@@ -2,6 +2,8 @@ using OrderEntity = Order.Core.Domain.Orders.Order;
 using Order.Core.Domain.Orders.ValueObjects;
 using Order.Core.Application.Abstractions.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Order.Core.Domain.Orders.Enums;
+using Order.Core.Application.Common;
 
 namespace Order.Infrastructure.Persistence.Repositories;
 
@@ -45,17 +47,45 @@ public class OrderRepository : IOrderRepository
             .Where(o => o.DeletedAt == null)
             .CountAsync(ct);
     }
-    public async Task<IReadOnlyList<OrderEntity>> GetPagedAsync(
+    public async Task<PagedResult<OrderEntity>> GetPagedAsync(
         int page,
         int pageSize,
+        OrderStatus? status,
         CancellationToken ct = default)
     {
-        return await _db.Orders
+
+        if (page < 0) page = 0;
+        if (pageSize <= 0) pageSize = 25;
+
+        var query = _db.Orders
             .AsNoTracking()
-            .Where(o => o.DeletedAt == null)
+            .Where(o => o.DeletedAt == null);
+
+        if (status.HasValue)
+        {
+            query = query.Where(o => o.Status == status.Value);
+        }
+
+        var totalItems = await query.CountAsync(ct);
+
+        var items = await query
             .OrderByDescending(o => o.CreatedAt)
             .Skip(page * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
+
+        var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        return new PagedResult<OrderEntity>
+        {
+            Items = items,
+            Page = page,
+            PageSize = pageSize,
+            TotalItems = totalItems,
+            TotalPages = totalPages
+        };
     }
+
+
+
 }

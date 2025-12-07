@@ -12,6 +12,7 @@ using Order.Api.ViewModels.OrderItem;
 using System.ComponentModel.DataAnnotations;
 using Order.Api.Errors;
 using Order.Core.Application.Common;
+using Order.Core.Domain.Orders.Enums;
 
 namespace Order.Api.Controllers;
 
@@ -160,12 +161,13 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetAllOrders(
             CancellationToken ct,
             [FromQuery] int page = 0,
-            [FromQuery] int pageSize = 25)
+            [FromQuery] int pageSize = 25,
+            [FromQuery] OrderStatus? status = null)
             
     {
         try
         {
-            var query = new GetAllOrdersQuery(page, pageSize);
+            var query = new GetAllOrdersQuery(page, pageSize, status);
             var result = await _mediator.Send(query, ct);
 
             return Ok(new ResultViewModel<PagedResult<GetAllOrdersResponse>>(result));
