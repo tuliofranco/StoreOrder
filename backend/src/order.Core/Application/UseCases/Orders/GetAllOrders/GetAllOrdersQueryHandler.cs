@@ -23,10 +23,10 @@ public class GetAllOrdersQueryHandler
 
         var totalItems = await _repository.CountAsync(ct);
 
-        var orders = await _repository
-            .GetPagedAsync(page, pageSize, ct);
+        var pagedOrders = await _repository
+            .GetPagedAsync(page, pageSize, request.Status, ct);
 
-        var items = orders.Select(order => new GetAllOrdersResponse(
+        var mappedItems = pagedOrders.Items.Select(order => new GetAllOrdersResponse(
             order.OrderNumber.Value,
             order.Status.ToString(),
             order.CreatedAt,
@@ -39,11 +39,11 @@ public class GetAllOrdersQueryHandler
 
         return new PagedResult<GetAllOrdersResponse>
         {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalItems = totalItems,
-            TotalPages = totalPages
+            Items = mappedItems,
+            Page = pagedOrders.Page,
+            PageSize = pagedOrders.PageSize,
+            TotalItems = pagedOrders.TotalItems,
+            TotalPages = pagedOrders.TotalPages
         };
     }
 }
