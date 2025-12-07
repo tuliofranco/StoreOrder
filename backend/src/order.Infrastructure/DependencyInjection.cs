@@ -23,6 +23,7 @@ public static class DependencyInjection
                 npg => npg.MigrationsAssembly(typeof(StoreOrderDbContext).Assembly.FullName)
             );
         });
+        services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 

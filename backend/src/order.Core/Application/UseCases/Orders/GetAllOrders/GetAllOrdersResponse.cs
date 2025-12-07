@@ -1,6 +1,6 @@
-namespace Order.Core.Application.UseCases.GetOrderByOrderNumber;
+namespace Order.Core.Application.UseCases.Orders.GetAllOrders;
 
-public record GetOrderByOrderNumberResponse(
+public record GetAllOrdersResponse(
     string OrderNumber,
     string Status,
     DateTime CreatedAt,

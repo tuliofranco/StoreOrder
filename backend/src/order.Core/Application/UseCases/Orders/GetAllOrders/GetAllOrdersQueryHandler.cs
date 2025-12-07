@@ -1,7 +1,7 @@
 using MediatR;
 using Order.Core.Application.Abstractions.Repositories;
 
-namespace Order.Core.Application.UseCases.GetAllOrders;
+namespace Order.Core.Application.UseCases.Orders.GetAllOrders;
 
 public class GetAllOrdersQueryHandler 
     : IRequestHandler<GetAllOrdersQuery, IEnumerable<GetAllOrdersResponse>>

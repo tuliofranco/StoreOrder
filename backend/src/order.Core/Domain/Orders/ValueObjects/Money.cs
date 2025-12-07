@@ -14,6 +14,9 @@ public readonly record struct Money
     public Money Add(Money other)
         => new Money(Amount + other.Amount);
 
+    public Money Subtract(Money other)
+        => new Money(Amount - other.Amount);
+
     public Money Multiply(int quantity)
         => new Money(Amount * quantity);
 

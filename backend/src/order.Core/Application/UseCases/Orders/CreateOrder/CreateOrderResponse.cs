@@ -1,4 +1,4 @@
-namespace Order.Core.Application.UseCases.CreateOrder;
+namespace Order.Core.Application.UseCases.Orders.CreateOrder;
 
 public record CreateOrderResponse(
     string OrderNumber,

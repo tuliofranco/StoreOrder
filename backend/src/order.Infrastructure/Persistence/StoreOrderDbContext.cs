@@ -11,7 +11,6 @@ public class StoreOrderDbContext : DbContext
     public DbSet<OrderEntity> Orders => Set<OrderEntity>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
-
     public StoreOrderDbContext(DbContextOptions<StoreOrderDbContext> options)
         : base(options)
     {
@@ -22,6 +21,7 @@ public class StoreOrderDbContext : DbContext
         ConfigureOrder(modelBuilder);
         ConfigureOrderItem(modelBuilder);
     }
+
     private void ConfigureOrder(ModelBuilder modelBuilder)
     {
         var order = modelBuilder.Entity<OrderEntity>();
@@ -35,7 +35,7 @@ public class StoreOrderDbContext : DbContext
         order.Property(o => o.OrderNumber)
             .HasConversion(
                 on => on.Value,
-                value => new OrderNumber(value)
+                value => OrderNumber.FromString(value)
             )
             .HasColumnName("OrderNumber")
             .IsRequired();
@@ -46,7 +46,8 @@ public class StoreOrderDbContext : DbContext
                 value => Money.FromDecimal(value)
             )
             .HasColumnName("Total")
-            .HasColumnType("decimal(18,2)");
+            .HasColumnType("decimal(18,2)")
+            .IsRequired();
 
         order.Property(o => o.Status)
             .HasConversion<string>()
@@ -58,7 +59,7 @@ public class StoreOrderDbContext : DbContext
         order.Property(o => o.ClosedAt);
         order.Property(o => o.DeletedAt);
 
-
+        // relação 1:N
         order.HasMany(o => o.Items)
             .WithOne()
             .HasForeignKey(i => i.OrderId)
@@ -69,13 +70,13 @@ public class StoreOrderDbContext : DbContext
     {
         var item = modelBuilder.Entity<OrderItem>();
 
-        item.ToTable("orderitems");
+        item.ToTable("order_items");
 
         item.HasKey(i => i.Id);
+        item.Ignore(i => i.Subtotal);
 
-        item.Property(i => i.ProductName)
-            .IsRequired()
-            .HasMaxLength(200);
+        item.Property(i => i.OrderId)
+            .IsRequired();
 
         item.Property(i => i.UnitPrice)
             .HasConversion(
@@ -85,8 +86,13 @@ public class StoreOrderDbContext : DbContext
             .HasColumnName("UnitPrice")
             .HasColumnType("decimal(18,2)");
 
+        item.Property(i => i.Description)
+            .HasMaxLength(200)
+            .IsRequired();
+
         item.Property(i => i.Quantity)
             .IsRequired();
+        
     }
 
 }
