@@ -10,7 +10,8 @@ using Order.Core.Application.UseCases.Orders.CloseOrder;
 using Order.Core.Application.UseCases.OrderItem.RemoveItem;
 using Order.Api.ViewModels.OrderItem;
 using System.ComponentModel.DataAnnotations;
-using Order.Api.Errors; 
+using Order.Api.Errors;
+using Order.Core.Application.Common;
 
 namespace Order.Api.Controllers;
 
@@ -156,18 +157,24 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllOrders(CancellationToken ct)
+    public async Task<IActionResult> GetAllOrders(
+            CancellationToken ct,
+            [FromQuery] int page = 0,
+            [FromQuery] int pageSize = 25)
+            
     {
         try
         {
-            var result = await _mediator.Send(new GetAllOrdersQuery(), ct);
-            return Ok(new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(result));
+            var query = new GetAllOrdersQuery(page, pageSize);
+            var result = await _mediator.Send(query, ct);
+
+            return Ok(new ResultViewModel<PagedResult<GetAllOrdersResponse>>(result));
         }
         catch (OperationCanceledException)
         {
             return StatusCode(
                 499,
-                new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(
+                new ResultViewModel<PagedResult<GetAllOrdersResponse>>(
                     ErrorCatalog.Orders.GetAll_Cancelled
                 )
             );
@@ -176,7 +183,7 @@ public class OrdersController : ControllerBase
         {
             return StatusCode(
                 500,
-                new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(
+                new ResultViewModel<PagedResult<GetAllOrdersResponse>>(
                     ErrorCatalog.Orders.GetAll_InternalError
                 )
             );
