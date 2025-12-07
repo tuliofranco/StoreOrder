@@ -27,6 +27,13 @@ public static class ErrorCatalog
         public const string Close_NotFound         = "002N001 - Pedido não encontrado para fechamento";
         public const string Close_BusinessRule     = "002B001 - Pedido não pode ser fechado.";
         public const string Close_Cancelled        = "002X002 - Requisição cancelada ao fechar pedido";
-        public const string Close_InternalError    = "002X001 - Falha interna no servidor ao fechar o pedido";
+        public const string Close_InternalError = "002X001 - Falha interna no servidor ao fechar o pedido";
+        
+        // RemoveItem
+        public const string RemoveItem_Validation   = "006V001 - Erros de validação ao remover item do pedido";
+        public const string RemoveItem_NotFound     = "006N001 - Item ou pedido não encontrado para remoção";
+        public const string RemoveItem_BusinessRule = "006B001 - Item não pode ser removido do pedido.";
+        public const string RemoveItem_Cancelled    = "006X002 - Requisição cancelada ao remover item do pedido";
+        public const string RemoveItem_InternalError= "006X001 - Falha interna no servidor ao remover item do pedido";
     }
 }
