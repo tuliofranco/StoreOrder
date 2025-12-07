@@ -38,4 +38,24 @@ public class OrderRepository : IOrderRepository
                     .OrderByDescending(o => o.CreatedAt)
                     .ToListAsync(ct);
     }
+
+    public async Task<int> CountAsync(CancellationToken ct = default)
+    {
+        return await _db.Orders
+            .Where(o => o.DeletedAt == null)
+            .CountAsync(ct);
+    }
+    public async Task<IReadOnlyList<OrderEntity>> GetPagedAsync(
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        return await _db.Orders
+            .AsNoTracking()
+            .Where(o => o.DeletedAt == null)
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip(page * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+    }
 }
