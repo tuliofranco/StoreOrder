@@ -69,4 +69,15 @@ public class Order
         Items.Remove(item);
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void Close()
+    {
+        if (Status != OrderStatus.Open)
+            throw new InvalidOperationException("Only orders in 'Open' status can be closed.");
+
+        Status = OrderStatus.Closed;
+        var now = DateTime.UtcNow;
+        ClosedAt = now;
+        UpdatedAt = now;
+    }
 }

@@ -75,6 +75,8 @@ public class StoreOrderDbContext : DbContext
         item.HasKey(i => i.Id);
         item.Ignore(i => i.Subtotal);
 
+        item.HasIndex(i => i.ProductId).IsUnique();
+        item.Property(i => i.ProductId).IsRequired().HasMaxLength(60);
         item.Property(i => i.OrderId)
             .IsRequired();
 

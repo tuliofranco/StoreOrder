@@ -14,7 +14,7 @@ public class AddOrderItemResponse
 
 public class AddOrderItemResponseItem
 {
-    public Guid Id { get; init; }
+    public string? ProductId { get; init; }
     public string Description { get; init; } = string.Empty;
     public int Quantity { get; init; }
     public decimal UnitPrice { get; init; }
