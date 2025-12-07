@@ -6,8 +6,10 @@ using Order.Api.ViewModels;
 using Order.Api.Extensions;
 using Order.Core.Application.UseCases.Orders.GetAllOrders;
 using Order.Core.Application.UseCases.OrderItem.AddItem;
+using Order.Core.Application.UseCases.Orders.CloseOrder;
 using Order.Api.ViewModels.OrderItem;
-
+using System.ComponentModel.DataAnnotations;
+using Order.Api.Errors; 
 
 namespace Order.Api.Controllers;
 
@@ -30,38 +32,89 @@ public class OrdersController : ControllerBase
             var result = await _mediator.Send(new CreateOrderCommand(), ct);
             return Ok(new ResultViewModel<CreateOrderResponse>(result));
         }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<CreateOrderResponse>(ErrorCatalog.Orders.Create_Cancelled)
+            );
+        }
         catch
         {
-            return StatusCode(500, new ResultViewModel<CreateOrderResponse>("001X001 - Falha interna no servidor"));
+            return StatusCode(
+                500,
+                new ResultViewModel<CreateOrderResponse>(ErrorCatalog.Orders.Create_InternalError)
+            );
         }
     }
 
-
     [HttpPost("{orderNumber}/addItem")]
-    public async Task<IActionResult> AddItemToOrder(
+    public async Task<IActionResult> AddOrderItem(
         string orderNumber,
         [FromBody] AddOrderItemRequest request,
         CancellationToken ct)
     {
         if (!ModelState.IsValid)
-            return BadRequest(new ResultViewModel<GetOrderByOrderNumberResponse>(ModelState.GetErrors()));
+        {
+            var errors = ModelState.GetErrors();
+            errors.Insert(0, ErrorCatalog.Orders.AddItem_Validation);
+            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
+        }
 
         try
         {
             var command = new AddOrderItemCommand(
-                OrderNumber: orderNumber,
-                Description: request.Description,
-                UnitPrice: request.UnitPrice,
-                Quantity: request.Quantity
+                orderNumber,
+                request.Description,
+                request.UnitPrice,
+                request.Quantity
             );
 
             var result = await _mediator.Send(command, ct);
 
-            return Ok(new ResultViewModel<AddOrderItemResponse>(result));
+            return Ok(new ResultViewModel<AddOrderItemResponse?>(result));
+        }
+        catch (ValidationException ex)
+        {
+            var errors = ModelState.GetErrors();
+            errors.Add(ex.Message);
+            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            var errors = new List<string>
+            {
+                $"{ErrorCatalog.Orders.GetOrder_NotFound} - {ex.Message}"
+            };
+
+            return NotFound(new ResultViewModel<AddOrderItemResponse?>(errors));
+        }
+        catch (InvalidOperationException ex)
+        {
+            var errors = new List<string>
+            {
+                ex.Message
+            };
+
+            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<AddOrderItemResponse?>(
+                    ErrorCatalog.Orders.AddItem_Cancelled
+                )
+            );
         }
         catch
         {
-            return NotFound(new ResultViewModel<AddOrderItemResponse>("Order not found"));
+            return StatusCode(
+                500,
+                new ResultViewModel<AddOrderItemResponse?>(
+                    ErrorCatalog.Orders.AddItem_InternalError
+                )
+            );
         }
     }
 
@@ -75,20 +128,111 @@ public class OrdersController : ControllerBase
             var result = await _mediator.Send(new GetOrderByOrderNumberQuery(orderNumber), ct);
             return Ok(new ResultViewModel<GetOrderByOrderNumberResponse>(result));
         }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ResultViewModel<GetOrderByOrderNumberResponse>(
+                ErrorCatalog.Orders.GetOrder_NotFound
+            ));
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<GetOrderByOrderNumberResponse>(
+                    ErrorCatalog.Orders.GetOrder_Cancelled
+                )
+            );
+        }
         catch
         {
-            return NotFound(new ResultViewModel<string>("Order not found"));
+            return StatusCode(
+                500,
+                new ResultViewModel<GetOrderByOrderNumberResponse>(
+                    ErrorCatalog.Orders.GetOrder_InternalError
+                )
+            );
         }
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllOrders(CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(ModelState.GetErrors()));
+        try
+        {
+            var result = await _mediator.Send(new GetAllOrdersQuery(), ct);
+            return Ok(new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(result));
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(
+                    ErrorCatalog.Orders.GetAll_Cancelled
+                )
+            );
+        }
+        catch
+        {
+            return StatusCode(
+                500,
+                new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(
+                    ErrorCatalog.Orders.GetAll_InternalError
+                )
+            );
+        }
+    }
 
-        var result = await _mediator.Send(new GetAllOrdersQuery(), ct);
+    [HttpPatch("{orderNumber}")]
+    public async Task<IActionResult> CloseOrder(
+        string orderNumber,
+        CancellationToken ct)
+    {
 
-        return Ok(new ResultViewModel<IEnumerable<GetAllOrdersResponse>>(result));
+        try
+        {
+            var command = new CloseOrderCommand(orderNumber);
+            var result = await _mediator.Send(command, ct);
+            return Ok(new ResultViewModel<CloseOrderResponse>(result));
+        }
+        catch (ValidationException ex)
+        {
+            var errors = ModelState.GetErrors();
+            errors.Add(ex.Message);
+            return BadRequest(new ResultViewModel<CloseOrderResponse>(errors));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ResultViewModel<CloseOrderResponse>(
+                ErrorCatalog.Orders.Close_NotFound
+            ));
+        }
+        catch (InvalidOperationException ex)
+        {
+            var errors = new List<string>
+            {
+                ErrorCatalog.Orders.Close_BusinessRule,
+                ex.Message
+            };
+
+            return BadRequest(new ResultViewModel<CloseOrderResponse>(errors));
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<CloseOrderResponse>(
+                    ErrorCatalog.Orders.Close_Cancelled
+                )
+            );
+        }
+        catch
+        {
+            return StatusCode(
+                500,
+                new ResultViewModel<CloseOrderResponse>(
+                    ErrorCatalog.Orders.Close_InternalError
+                )
+            );
+        }
     }
 }

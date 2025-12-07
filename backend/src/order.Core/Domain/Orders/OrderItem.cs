@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Security.Cryptography;
 using Order.Core.Domain.Orders.ValueObjects;
 
 namespace Order.Core.Domain.Orders;
@@ -6,6 +8,7 @@ public class OrderItem
 {
     public Guid Id { get; private set; }
     public Guid OrderId { get; private set; }
+    public string? ProductId { get; private set; }
     public string Description { get; private set; }
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; }
@@ -27,6 +30,7 @@ public class OrderItem
         Id = Guid.NewGuid();
         OrderId = orderId;
         Description = description.Trim();
+        ProductId = ProductIdGenerator();
         UnitPrice = unitPrice;
         Quantity = quantity;
     }
@@ -52,4 +56,30 @@ public class OrderItem
     }
 
     public Money GetTotal() => Subtotal;
+
+    private string ProductIdGenerator()
+    {
+        var parts = Description
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var firstName = parts.Length > 0 ? parts[0] : "Produto";
+
+        if (firstName.Length > 45)
+            firstName = firstName[..45];
+
+        var value = UnitPrice.Amount.ToString("0.##", CultureInfo.InvariantCulture);
+
+        if (value.Length > 9)
+            value = value[..9];
+
+        var randomNumber = RandomNumberGenerator.GetInt32(0, 1_000_000);
+        var randomPart = randomNumber.ToString("D6");
+
+        var productId = $"{firstName}-{value}-{randomPart}";
+
+        if (productId.Length > 60)
+            productId = productId[..60];
+
+        return productId;
+    }    
 }
