@@ -1,7 +1,7 @@
 namespace Order.Core.Application.UseCases.Orders.GetOrderByOrderNumber;
 
 public record GetOrderByOrderNumberItemResponse(
-    Guid Id,
+    string ProductId,
     string Description,
     int Quantity,
     decimal UnitPrice,

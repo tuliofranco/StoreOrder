@@ -7,6 +7,7 @@ using Order.Api.Extensions;
 using Order.Core.Application.UseCases.Orders.GetAllOrders;
 using Order.Core.Application.UseCases.OrderItem.AddItem;
 using Order.Core.Application.UseCases.Orders.CloseOrder;
+using Order.Core.Application.UseCases.OrderItem.RemoveItem;
 using Order.Api.ViewModels.OrderItem;
 using System.ComponentModel.DataAnnotations;
 using Order.Api.Errors; 
@@ -231,6 +232,69 @@ public class OrdersController : ControllerBase
                 500,
                 new ResultViewModel<CloseOrderResponse>(
                     ErrorCatalog.Orders.Close_InternalError
+                )
+            );
+        }
+    }
+
+
+    [HttpDelete("{orderNumber}/{productId}")]
+    public async Task<IActionResult> RemoveItem(
+        string orderNumber,
+        string productId,
+        CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(ModelState.GetErrors()));
+
+        try
+        {
+            var command = new RemoveOrderItemCommand(
+                orderNumber,
+                productId
+            );
+
+            var result = await _mediator.Send(command, ct);
+
+            return Ok(new ResultViewModel<RemoveOrderItemResponse>(result));
+        }
+        catch (ValidationException ex)
+        {
+            var errors = ModelState.GetErrors();
+            errors.Add(ex.Message);
+            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(errors));
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new ResultViewModel<RemoveOrderItemResponse>(
+                ErrorCatalog.Orders.RemoveItem_NotFound
+            ));
+        }
+        catch (InvalidOperationException ex)
+        {
+            var errors = new List<string>
+            {
+                ErrorCatalog.Orders.RemoveItem_BusinessRule,
+                ex.Message
+            };
+
+            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(errors));
+        }
+        catch (OperationCanceledException)
+        {
+            return StatusCode(
+                499,
+                new ResultViewModel<RemoveOrderItemResponse>(
+                    ErrorCatalog.Orders.RemoveItem_Cancelled
+                )
+            );
+        }
+        catch
+        {
+            return StatusCode(
+                500,
+                new ResultViewModel<RemoveOrderItemResponse>(
+                    ErrorCatalog.Orders.RemoveItem_InternalError
                 )
             );
         }

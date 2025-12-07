@@ -24,7 +24,7 @@ public class GetOrderByOrderNumberQueryHandler : IRequestHandler<GetOrderByOrder
 
         var items = order.Items
             .Select(i => new GetOrderByOrderNumberItemResponse(
-                Id: i.Id,
+                ProductId: i.ProductId,
                 Description: i.Description,
                 Quantity: i.Quantity,
                 UnitPrice: i.UnitPrice.Amount,
