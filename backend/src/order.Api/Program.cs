@@ -19,6 +19,11 @@ try
 }
 catch { }
 
+
+var connectionString =
+    Environment.GetEnvironmentVariable("STRING_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("STRING_CONNECTION");
+
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(
         options =>
@@ -33,7 +38,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(connectionString);
 
 
 builder.Services.AddMediatR(cfg =>
@@ -61,3 +66,4 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+public partial class Program { }

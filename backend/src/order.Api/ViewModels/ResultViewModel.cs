@@ -4,6 +4,8 @@ namespace Order.Api.ViewModels;
 public class ResultViewModel<T>
 {
 
+    public ResultViewModel() { }
+
     public ResultViewModel(T data, List<string> errors)
     {
         Data = data;
@@ -25,6 +27,6 @@ public class ResultViewModel<T>
         Errors.Add(error);
     }
 
-    public T? Data { get; private set; }
-    public List<string>? Errors { get; private set; } = new();
+    public T? Data { get; set; }
+    public List<string>? Errors { get;  set; } = new();
 }
