@@ -31,6 +31,19 @@ public class CloseOrderCommandHandlerTests
         );
     }
 
+    public static OrderEntity CreateClosedOrderWithItems()
+    {
+        var order = OrderEntity.Create();
+
+        var unitPrice = Money.FromDecimal(10m);
+        var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 1);
+
+        order.AddItem(item);
+        order.Close();
+
+        return order;
+    }
+
     [Fact]
     public async Task Handle_WhenOrderIsOpenAndHasItems_ShouldCloseOrderAndCommit()
     {
@@ -48,8 +61,7 @@ public class CloseOrderCommandHandlerTests
             .ReturnsAsync(order);
 
         _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()));
 
         var response = await _handler.Handle(command, CancellationToken.None);
 
@@ -96,17 +108,9 @@ public class CloseOrderCommandHandlerTests
     [Fact]
     public async Task Handle_WhenOrderStatusIsNotOpen_ShouldThrowInvalidOperationException()
     {
-
-        var orderNumber = "20251208002-00001";
+        var order = CreateClosedOrderWithItems();
+        var orderNumber = order.OrderNumber.Value;
         var command = new CloseOrderCommand(orderNumber);
-
-        var order = OrderEntity.Create();
-
-        var unitPrice = Money.FromDecimal(10m);
-        var item = OrderItemEntity.Create(order.Id, "Product B", unitPrice, 1);
-        order.AddItem(item);
-
-        order.Close();
 
         _orderRepositoryMock
             .Setup(r => r.GetByOrderNumberAsync(orderNumber, It.IsAny<CancellationToken>()))
@@ -115,8 +119,8 @@ public class CloseOrderCommandHandlerTests
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.Handle(command, CancellationToken.None));
 
+        Assert.Contains("Cannot modify a closed order", ex.Message);
         Assert.Contains(orderNumber, ex.Message);
-        Assert.Contains(order.Status.ToString(), ex.Message);
 
         _unitOfWorkMock.Verify(
             u => u.CommitAsync(It.IsAny<CancellationToken>()),
@@ -126,10 +130,9 @@ public class CloseOrderCommandHandlerTests
     [Fact]
     public async Task Handle_WhenOrderHasNoItems_ShouldThrowInvalidOperationException()
     {
-        var orderNumber = "20251208003-00001";
+        var order = OrderEntity.Create();
+        var orderNumber = order.OrderNumber.Value;
         var command = new CloseOrderCommand(orderNumber);
-
-        var order = OrderEntity.Create(); // Items vazio
 
         _orderRepositoryMock
             .Setup(r => r.GetByOrderNumberAsync(orderNumber, It.IsAny<CancellationToken>()))
@@ -139,7 +142,7 @@ public class CloseOrderCommandHandlerTests
             () => _handler.Handle(command, CancellationToken.None));
 
         Assert.Contains(orderNumber, ex.Message);
-        Assert.Contains("não pode ser fechado", ex.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("O pedido não pode ser fechado pois não possui itens", ex.Message);
 
         _unitOfWorkMock.Verify(
             u => u.CommitAsync(It.IsAny<CancellationToken>()),

@@ -5,7 +5,9 @@ using Order.Core.Application.Abstractions;
 using Order.Core.Application.Abstractions.Repositories;
 using Order.Core.Application.UseCases.Orders.CreateOrder;
 using OrderEntity = Order.Core.Domain.Orders.Order;
+
 using Xunit;
+using Order.Core.Domain.Orders.ValueObjects;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
@@ -38,8 +40,7 @@ public class CreateOrderCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()));
 
         var response = await _handler.Handle(command, CancellationToken.None);
 

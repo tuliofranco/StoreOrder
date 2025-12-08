@@ -36,6 +36,19 @@ public class AddOrderItemCommandHandlerTests
         );
     }
 
+    private static OrderEntity CreateClosedOrderWithItems()
+    {
+        var order = OrderEntity.Create();
+
+        var unitPrice = Money.FromDecimal(10m);
+        var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 1);
+
+        order.AddItem(item);
+        order.Close();
+
+        return order;
+    }
+
     [Fact]
     public async Task Handle_WhenOrderExistsAndItemIsNew_ShouldAddItemPersistAndReturnMappedResponse()
     {
@@ -58,8 +71,7 @@ public class AddOrderItemCommandHandlerTests
             .Returns(Task.CompletedTask);
 
         _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()));
 
         var response = await _handler.Handle(command, CancellationToken.None);
 
@@ -117,8 +129,7 @@ public class AddOrderItemCommandHandlerTests
             .ReturnsAsync(order);
 
         _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()));
 
         var previousQuantity = existingItem.Quantity;
 
@@ -180,16 +191,15 @@ public class AddOrderItemCommandHandlerTests
     [Fact]
     public async Task Handle_WhenOrderIsClosed_ShouldThrowInvalidOperationException()
     {
-        var orderNumber = "20251208003-00001";
+        var order = CreateClosedOrderWithItems();
+        var orderNumber = order.OrderNumber.Value;
+
         var command = new AddOrderItemCommand(
             OrderNumber: orderNumber,
             Description: "Product X",
             UnitPrice: 50m,
             Quantity: 1
         );
-
-        var order = OrderEntity.Create();
-        order.Close();
 
         _orderRepositoryMock
             .Setup(r => r.GetByOrderNumberAsync(orderNumber, It.IsAny<CancellationToken>()))
@@ -198,7 +208,8 @@ public class AddOrderItemCommandHandlerTests
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.Handle(command, CancellationToken.None));
 
-        Assert.Contains("Cannot add items to a closed order", ex.Message);
+        Assert.Contains("Cannot modify a closed order", ex.Message);
+        Assert.Contains(orderNumber, ex.Message);
 
         _orderItemRepositoryMock.Verify(
             r => r.AddAsync(It.IsAny<OrderItemEntity>(), It.IsAny<CancellationToken>()),
