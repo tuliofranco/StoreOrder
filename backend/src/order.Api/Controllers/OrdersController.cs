@@ -30,131 +30,42 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder(CancellationToken ct)
     {
-        try
-        {
-            var result = await _mediator.Send(new CreateOrderCommand(), ct);
-            return Ok(new ResultViewModel<CreateOrderResponse>(result));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<CreateOrderResponse>(ErrorCatalog.Orders.Create_Cancelled)
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<CreateOrderResponse>(ErrorCatalog.Orders.Create_InternalError)
-            );
-        }
+        var result = await _mediator.Send(new CreateOrderCommand(), ct);
+        return Ok(new ResultViewModel<CreateOrderResponse>(result));
     }
+
 
     [HttpPost("{orderNumber}/addItem")]
     public async Task<IActionResult> AddOrderItem(
-        string orderNumber,
-        [FromBody] AddOrderItemRequest request,
-        CancellationToken ct)
+    string orderNumber,
+    [FromBody] AddOrderItemRequest request,
+    CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-        {
-            var errors = ModelState.GetErrors();
-            errors.Insert(0, ErrorCatalog.Orders.AddItem_Validation);
-            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
-        }
+        ArgumentNullException.ThrowIfNull(request);
 
-        try
-        {
-            var command = new AddOrderItemCommand(
-                orderNumber,
-                request.Description,
-                request.UnitPrice,
-                request.Quantity
-            );
+        var command = new AddOrderItemCommand(
+            orderNumber,
+            request.Description,
+            request.UnitPrice,
+            request.Quantity
+        );
 
-            var result = await _mediator.Send(command, ct);
+        var result = await _mediator
+            .Send(command, ct)
+            .ConfigureAwait(false);
 
-            return Ok(new ResultViewModel<AddOrderItemResponse?>(result));
-        }
-        catch (ValidationException ex)
-        {
-            var errors = ModelState.GetErrors();
-            errors.Add(ex.Message);
-            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
-        }
-        catch (KeyNotFoundException ex)
-        {
-            var errors = new List<string>
-            {
-                $"{ErrorCatalog.Orders.GetOrder_NotFound} - {ex.Message}"
-            };
 
-            return NotFound(new ResultViewModel<AddOrderItemResponse?>(errors));
-        }
-        catch (InvalidOperationException ex)
-        {
-            var errors = new List<string>
-            {
-                ex.Message
-            };
 
-            return BadRequest(new ResultViewModel<AddOrderItemResponse?>(errors));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<AddOrderItemResponse?>(
-                    ErrorCatalog.Orders.AddItem_Cancelled
-                )
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<AddOrderItemResponse?>(
-                    ErrorCatalog.Orders.AddItem_InternalError
-                )
-            );
-        }
+        return Ok(new ResultViewModel<AddOrderItemResponse?>(result));
     }
 
     [HttpGet("{orderNumber}")]
     public async Task<IActionResult> GetOrder(string orderNumber, CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(new ResultViewModel<GetOrderByOrderNumberResponse>(ModelState.GetErrors()));
-        try
-        {
-            var result = await _mediator.Send(new GetOrderByOrderNumberQuery(orderNumber), ct);
-            return Ok(new ResultViewModel<GetOrderByOrderNumberResponse>(result));
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new ResultViewModel<GetOrderByOrderNumberResponse>(
-                ErrorCatalog.Orders.GetOrder_NotFound
-            ));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<GetOrderByOrderNumberResponse>(
-                    ErrorCatalog.Orders.GetOrder_Cancelled
-                )
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<GetOrderByOrderNumberResponse>(
-                    ErrorCatalog.Orders.GetOrder_InternalError
-                )
-            );
-        }
+
+        var result = await _mediator.Send(new GetOrderByOrderNumberQuery(orderNumber), ct);
+        return Ok(new ResultViewModel<GetOrderByOrderNumberResponse>(result));
+
     }
 
     [HttpGet]
@@ -163,33 +74,12 @@ public class OrdersController : ControllerBase
             [FromQuery] int page = 0,
             [FromQuery] int pageSize = 25,
             [FromQuery] OrderStatus? status = null)
-            
-    {
-        try
-        {
-            var query = new GetAllOrdersQuery(page, pageSize, status);
-            var result = await _mediator.Send(query, ct);
 
-            return Ok(new ResultViewModel<PagedResult<GetAllOrdersResponse>>(result));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<PagedResult<GetAllOrdersResponse>>(
-                    ErrorCatalog.Orders.GetAll_Cancelled
-                )
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<PagedResult<GetAllOrdersResponse>>(
-                    ErrorCatalog.Orders.GetAll_InternalError
-                )
-            );
-        }
+    {
+        var query = new GetAllOrdersQuery(page, pageSize, status);
+        var result = await _mediator.Send(query, ct);
+        return Ok(new ResultViewModel<PagedResult<GetAllOrdersResponse>>(result));
+        
     }
 
     [HttpPatch("{orderNumber}")]
@@ -197,53 +87,9 @@ public class OrdersController : ControllerBase
         string orderNumber,
         CancellationToken ct)
     {
-
-        try
-        {
-            var command = new CloseOrderCommand(orderNumber);
-            var result = await _mediator.Send(command, ct);
-            return Ok(new ResultViewModel<CloseOrderResponse>(result));
-        }
-        catch (ValidationException ex)
-        {
-            var errors = ModelState.GetErrors();
-            errors.Add(ex.Message);
-            return BadRequest(new ResultViewModel<CloseOrderResponse>(errors));
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new ResultViewModel<CloseOrderResponse>(
-                ErrorCatalog.Orders.Close_NotFound
-            ));
-        }
-        catch (InvalidOperationException ex)
-        {
-            var errors = new List<string>
-            {
-                ErrorCatalog.Orders.Close_BusinessRule,
-                ex.Message
-            };
-
-            return BadRequest(new ResultViewModel<CloseOrderResponse>(errors));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<CloseOrderResponse>(
-                    ErrorCatalog.Orders.Close_Cancelled
-                )
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<CloseOrderResponse>(
-                    ErrorCatalog.Orders.Close_InternalError
-                )
-            );
-        }
+        var command = new CloseOrderCommand(orderNumber);
+        var result = await _mediator.Send(command, ct);
+        return Ok(new ResultViewModel<CloseOrderResponse>(result));
     }
 
 
@@ -253,59 +99,13 @@ public class OrdersController : ControllerBase
         string productId,
         CancellationToken ct)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(ModelState.GetErrors()));
 
-        try
-        {
-            var command = new RemoveOrderItemCommand(
+        var command = new RemoveOrderItemCommand(
                 orderNumber,
                 productId
             );
 
-            var result = await _mediator.Send(command, ct);
-
-            return Ok(new ResultViewModel<RemoveOrderItemResponse>(result));
-        }
-        catch (ValidationException ex)
-        {
-            var errors = ModelState.GetErrors();
-            errors.Add(ex.Message);
-            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(errors));
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new ResultViewModel<RemoveOrderItemResponse>(
-                ErrorCatalog.Orders.RemoveItem_NotFound
-            ));
-        }
-        catch (InvalidOperationException ex)
-        {
-            var errors = new List<string>
-            {
-                ErrorCatalog.Orders.RemoveItem_BusinessRule,
-                ex.Message
-            };
-
-            return BadRequest(new ResultViewModel<RemoveOrderItemResponse>(errors));
-        }
-        catch (OperationCanceledException)
-        {
-            return StatusCode(
-                499,
-                new ResultViewModel<RemoveOrderItemResponse>(
-                    ErrorCatalog.Orders.RemoveItem_Cancelled
-                )
-            );
-        }
-        catch
-        {
-            return StatusCode(
-                500,
-                new ResultViewModel<RemoveOrderItemResponse>(
-                    ErrorCatalog.Orders.RemoveItem_InternalError
-                )
-            );
-        }
+        var result = await _mediator.Send(command, ct);
+        return Ok(new ResultViewModel<RemoveOrderItemResponse>(result));
     }
 }

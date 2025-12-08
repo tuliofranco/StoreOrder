@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace Order.Api.Extensions;
 
 
-public static class ModelStateExtension
+internal static class ModelStateExtension
 {
-    public static List<string> GetErrors(this ModelStateDictionary modelState)
+    internal static List<string> GetErrors(this ModelStateDictionary modelState)
     {
         List<string> result = new List<string>();
 

@@ -4,9 +4,11 @@ using Order.Infrastructure;
 using Order.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Order.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+#pragma warning disable CA1031 // Não capturar exceptions de tipos genéricos
 try
 {
     if (string.Equals(
@@ -18,6 +20,15 @@ try
     }
 }
 catch { }
+#pragma warning restore CA1031 // Não capturar exceptions de tipos genéricos
+
+
+var connectionString =
+    Environment.GetEnvironmentVariable("STRING_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("STRING_CONNECTION");
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(
@@ -33,7 +44,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(connectionString);
 
 
 builder.Services.AddMediatR(cfg =>
@@ -55,9 +66,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
 app.MapControllers();
 
 app.Run();
+#pragma warning disable CA1515 // Considere tornar internos os tipos públicos
+public partial class Program { }
+#pragma warning restore CA1515 // Considere tornar internos os tipos públicos

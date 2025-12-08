@@ -1,0 +1,27 @@
+{
+  "data": {
+    "orderNumber": "20251208914-93894",
+    "status": "Open",
+    "createdAt": "2025-12-08T13:31:04.914728Z",
+    "updatedAt": "2025-12-08T13:35:11.648734Z",
+    "closedAt": null,
+    "total": 302500,
+    "items": [
+      {
+        "productId": "Iphone-0-878156",
+        "description": "Iphone 30",
+        "quantity": 3,
+        "unitPrice": 100000,
+        "subtotal": 300000
+      },
+      {
+        "productId": "Notebook-0-845977",
+        "description": "Notebook",
+        "quantity": 1,
+        "unitPrice": 2500,
+        "subtotal": 2500
+      }
+    ]
+  },
+  "errors": []
+}

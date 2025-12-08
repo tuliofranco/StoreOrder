@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using MediatR;
 using Order.Core.Application.Abstractions;
 using Order.Core.Application.Abstractions.Repositories;
+using Order.Core.Application.Common.Exceptions;
 using Order.Core.Domain.Orders.Enums;
 using Order.Core.Domain.Orders.ValueObjects;
 
@@ -29,7 +30,7 @@ public class RemoveOrderItemCommandHandler
         var order = await _orderRepository.GetByOrderNumberAsync(request.OrderNumber);
 
         if (order is null)
-            throw new KeyNotFoundException($"Order '{request.OrderNumber}' not found.");
+            throw new OrderNotFoundException($"Order '{request.OrderNumber}' not found.");
 
         if (order.Status == OrderStatus.Closed)
         {
@@ -42,7 +43,7 @@ public class RemoveOrderItemCommandHandler
 
         if (item is null)
         {
-            throw new KeyNotFoundException(
+            throw new OrderNotFoundException(
                 $"Item with ProductId '{request.ProductId}' not found in order '{request.OrderNumber}'.");
         }
         var quantity = item.Quantity;

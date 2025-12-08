@@ -1,0 +1,20 @@
+{
+  "data": {
+    "orderNumber": "20251208049-84255",
+    "status": "Closed",
+    "createdAt": "2025-12-08T14:18:10.049615Z",
+    "updatedAt": "2025-12-08T14:18:10.437248Z",
+    "closedAt": "2025-12-08T14:18:10.437248Z",
+    "total": 2500,
+    "items": [
+      {
+        "productId": "Notebook-0-085384",
+        "description": "Notebook",
+        "quantity": 1,
+        "unitPrice": 2500,
+        "subtotal": 2500
+      }
+    ]
+  },
+  "errors": []
+}
