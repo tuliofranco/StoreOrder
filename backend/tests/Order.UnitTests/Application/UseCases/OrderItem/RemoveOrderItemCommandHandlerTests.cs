@@ -52,8 +52,7 @@ public class RemoveOrderItemCommandHandlerTests
             .ReturnsAsync(order);
 
         _unitOfWorkMock
-            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+            .Setup(u => u.CommitAsync(It.IsAny<CancellationToken>()));
 
         var response = await _handler.Handle(command, CancellationToken.None);
 
@@ -124,7 +123,7 @@ public class RemoveOrderItemCommandHandlerTests
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _handler.Handle(command, CancellationToken.None));
 
-        Assert.Contains("Cannot remove items from a closed order", ex.Message);
+        Assert.Contains("Cannot modify a closed order", ex.Message);
 
         _unitOfWorkMock.Verify(
             u => u.CommitAsync(It.IsAny<CancellationToken>()),

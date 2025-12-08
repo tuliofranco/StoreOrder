@@ -9,6 +9,18 @@ namespace Order.UnitTests.Domain.Orders;
 
 public class OrderTests
 {
+    private static OrderEntity CreateOrderWithOneItem()
+    {
+        var order = OrderEntity.Create();
+
+        var unitPrice = Money.FromDecimal(10m);
+        var item = OrderItemEntity.Create(order.Id, "Agua mineral", unitPrice, 1);
+
+        order.AddItem(item);
+
+        return order;
+    }
+    
     [Fact]
     public void Create_ShouldInitializeOrderWithDefaultValues()
     {
@@ -153,7 +165,7 @@ public class OrderTests
     public void Close_WhenOrderIsOpen_ShouldSetStatusClosedAndSetClosedAtAndUpdatedAt()
     {
 
-        var order = OrderEntity.Create();
+        var order = CreateOrderWithOneItem();
         order.Close();
 
         Assert.Equal(OrderStatus.Closed, order.Status);
@@ -165,9 +177,19 @@ public class OrderTests
     [Fact]
     public void Close_WhenOrderIsNotOpen_ShouldThrow()
     {
-        var order = OrderEntity.Create();
+        var order = CreateOrderWithOneItem();
         order.Close();
 
-        Assert.Throws<InvalidOperationException>(() => order.Close()); // segunda vez deve falhar
+        Assert.Throws<InvalidOperationException>(() => order.Close()); 
+    }
+
+    [Fact]
+    public void Close_WhenOrderHasNoItems_ShouldThrowInvalidOperationException()
+    {
+        var order = OrderEntity.Create();
+
+        var ex = Assert.Throws<InvalidOperationException>(() => order.Close());
+
+        Assert.Contains("não pode ser fechado pois não possui itens", ex.Message);
     }
 }
