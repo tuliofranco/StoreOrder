@@ -32,4 +32,5 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Run Unit Tests
-        run: dotnet test ./tests/Order.UnitTests/Order.UnitTests.csproj --no-build --verbosity normal /p:UseVsTest=false
+        run: dotnet test ./tests/Order.UnitTests/Order.UnitTests.csproj --configuration Release /p:UseVsTest=false
+
