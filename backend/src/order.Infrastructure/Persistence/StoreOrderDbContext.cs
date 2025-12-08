@@ -3,6 +3,7 @@ using OrderEntity = Order.Core.Domain.Orders.Order;
 using OrderItem = Order.Core.Domain.Orders.OrderItem;
 using Order.Core.Domain.Orders.Enums;
 using Order.Core.Domain.Orders.ValueObjects;
+using Order.Infrastructure.Persistence.Outbox;
 
 namespace Order.Infrastructure.Persistence;
 
@@ -10,6 +11,8 @@ public class StoreOrderDbContext : DbContext
 {
     public DbSet<OrderEntity> Orders => Set<OrderEntity>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
 
     public StoreOrderDbContext(DbContextOptions<StoreOrderDbContext> options)
         : base(options)
@@ -20,6 +23,7 @@ public class StoreOrderDbContext : DbContext
     {
         ConfigureOrder(modelBuilder);
         ConfigureOrderItem(modelBuilder);
+        ConfigureOutbox(modelBuilder);
     }
 
     private void ConfigureOrder(ModelBuilder modelBuilder)
@@ -64,6 +68,8 @@ public class StoreOrderDbContext : DbContext
             .WithOne()
             .HasForeignKey(i => i.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        order.Ignore(o => o.DomainEvents);
     }
 
     private void ConfigureOrderItem(ModelBuilder modelBuilder)
@@ -94,7 +100,20 @@ public class StoreOrderDbContext : DbContext
 
         item.Property(i => i.Quantity)
             .IsRequired();
-        
+
+    }
+    private void ConfigureOutbox(ModelBuilder modelBuilder)
+    {
+        var outbox = modelBuilder.Entity<OutboxMessage>(cfg =>
+        {
+            cfg.ToTable("outbox_messages");
+            cfg.HasKey(o => o.Id);
+            cfg.Property(o => o.OccurredOn).IsRequired();
+            cfg.Property(o => o.Type).HasMaxLength(300);
+            cfg.Property(o => o.Payload).IsRequired();
+            cfg.Property(o => o.Processed).HasDefaultValue(false);
+            cfg.Property(o => o.ProcessedOn);
+        });
     }
 
 }

@@ -4,7 +4,7 @@ using OrderItem = Order.Core.Domain.Orders.OrderItem;
 
 namespace Order.Core.Domain.Orders;
 
-public class Order
+public class Order : IAggregateRoot
 {
     public Guid Id { get; private set; }
     public OrderNumber OrderNumber { get; private set; }
@@ -15,6 +15,8 @@ public class Order
     public DateTime? DeletedAt { get; private set; }
     public List<OrderItem> Items { get; private set; } = new();
     public Money Total { get; private set; }
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents;
 
     private Order() { }
 
@@ -23,7 +25,7 @@ public class Order
         var now = DateTime.UtcNow;
         var orderNumber = OrderNumber.Create(now);
 
-        return new Order
+        var order = new Order
         {
             Id = Guid.NewGuid(),
             OrderNumber = orderNumber,
@@ -31,6 +33,10 @@ public class Order
             CreatedAt = now,
             Total = Money.FromDecimal(0)
         };
+        order.AddDomainEvent(new OrderCreatedDomainEvent(order.Id, orderNumber.Value));
+        
+        return order;
+
     }
 
     public void AddItem(OrderItem item)
