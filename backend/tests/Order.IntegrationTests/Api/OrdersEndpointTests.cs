@@ -12,7 +12,7 @@ using Order.Core.Application.UseCases.Orders.GetOrderByOrderNumber;
 using Order.Core.Application.UseCases.OrderItem.AddItem;
 using Order.Core.Application.UseCases.Orders.CloseOrder;
 using Order.Core.Domain.Orders.Enums;
-using Order.IntegrationTests.Infrastructure;
+using Order.IntegrationTests.Infrastructure.E2E;
 using Xunit;
 
 namespace Order.IntegrationTests.Api;

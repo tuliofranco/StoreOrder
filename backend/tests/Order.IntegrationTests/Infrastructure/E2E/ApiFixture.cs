@@ -5,7 +5,7 @@ using Order.Infrastructure.Persistence;
 using Testcontainers.PostgreSql;
 using Xunit;
 
-namespace Order.IntegrationTests.Infrastructure;
+namespace Order.IntegrationTests.Infrastructure.E2E;
 
 public class ApiFixture : IAsyncLifetime
 {

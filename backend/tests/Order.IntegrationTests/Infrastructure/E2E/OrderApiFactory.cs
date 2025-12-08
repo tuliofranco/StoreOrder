@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Order.Infrastructure.Persistence;
 
-namespace Order.IntegrationTests.Infrastructure;
+namespace Order.IntegrationTests.Infrastructure.E2E;
 
 public class OrderApiFactory : WebApplicationFactory<Program>
 {
