@@ -9,24 +9,43 @@ using Order.Core.Domain.Orders.ValueObjects;
 using OrderEntity = Order.Core.Domain.Orders.Order;
 using OrderItemEntity = Order.Core.Domain.Orders.OrderItem;
 using Xunit;
+using Order.Core.Application.Abstractions;
+using Order.Core.Application.Common.Exceptions;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
 public class GetOrderByOrderNumberQueryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
+    private readonly Mock<ICacheService> _orderCacheMock;
     private readonly GetOrderByOrderNumberQueryHandler _handler;
 
     public GetOrderByOrderNumberQueryHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
-        _handler = new GetOrderByOrderNumberQueryHandler(_orderRepositoryMock.Object);
+        _orderCacheMock = new Mock<ICacheService>();
+        _handler = new GetOrderByOrderNumberQueryHandler(_orderRepositoryMock.Object, _orderCacheMock!.Object);
     }
 
     [Fact]
     public async Task Handle_WhenOrderExists_ShouldMapOrderAndItemsToResponse()
     {
         var query = new GetOrderByOrderNumberQuery("20251208123-00001");
+
+        // cache miss
+        _orderCacheMock
+            .Setup(c => c.GetAsync<GetOrderByOrderNumberResponse>(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((GetOrderByOrderNumberResponse?)null);
+
+        _orderCacheMock
+            .Setup(c => c.SetAsync(
+                It.IsAny<string>(),
+                It.IsAny<GetOrderByOrderNumberResponse>(),
+                It.IsAny<TimeSpan>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         var order = OrderEntity.Create();
 
@@ -66,11 +85,17 @@ public class GetOrderByOrderNumberQueryHandlerTests
     {
         var query = new GetOrderByOrderNumberQuery("NON-EXISTENT");
 
+        _orderCacheMock
+            .Setup(c => c.GetAsync<GetOrderByOrderNumberResponse>(
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync((GetOrderByOrderNumberResponse?)null);
+
         _orderRepositoryMock
             .Setup(r => r.GetByOrderNumberAsync(query.OrderNumber, It.IsAny<CancellationToken>()))
             .ReturnsAsync((OrderEntity?)null);
 
-        var ex = await Assert.ThrowsAsync<Exception>(
+        var ex = await Assert.ThrowsAsync<OrderNotFoundException>(
             () => _handler.Handle(query, CancellationToken.None));
 
         Assert.Equal("Order not found", ex.Message);

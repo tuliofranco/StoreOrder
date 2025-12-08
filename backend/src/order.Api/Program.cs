@@ -27,6 +27,10 @@ var connectionString =
     Environment.GetEnvironmentVariable("STRING_CONNECTION")
     ?? builder.Configuration.GetConnectionString("STRING_CONNECTION");
 
+var connectionStringResdis =
+    Environment.GetEnvironmentVariable("REDIS_CONNECTION")
+    ?? builder.Configuration.GetConnectionString("REDIS_CONNECTION");
+
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
@@ -44,7 +48,7 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddInfrastructure(connectionString);
+builder.Services.AddInfrastructure(connectionString, connectionStringResdis);
 
 
 builder.Services.AddMediatR(cfg =>
