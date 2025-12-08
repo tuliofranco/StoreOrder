@@ -21,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Order.Core\Order.Core.csproj" />
-    <ProjectReference Include="..\..\src\Order.Infrastructure\Order.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\order.Core\order.Core.csproj" />
+    <ProjectReference Include="..\..\src\order.Infrastructure\order.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
