@@ -12,6 +12,7 @@ public class ApiFixture : IAsyncLifetime
     private readonly PostgreSqlContainer _container =
         new PostgreSqlBuilder()
             .WithDatabase("orders_db_tests")
+            .WithName("E2E-Postgres")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .WithImage("postgres:16-alpine")
@@ -48,7 +49,7 @@ public class ApiFixture : IAsyncLifetime
     }
 }
 
-[CollectionDefinition("ApiCollection")]
+[CollectionDefinition("E2E")]
 public class ApiCollection : ICollectionFixture<ApiFixture>
 {
 }
