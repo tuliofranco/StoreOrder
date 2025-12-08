@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Order.Core.Domain.Orders.ValueObjects;
 
 public readonly record struct Money
@@ -21,5 +23,5 @@ public readonly record struct Money
         => new Money(Amount * quantity);
 
     public override string ToString()
-        => Amount.ToString("F2");
+        => Amount.ToString("F2", CultureInfo.InvariantCulture);
 }

@@ -8,8 +8,8 @@ public class OrderItem
 {
     public Guid Id { get; private set; }
     public Guid OrderId { get; private set; }
-    public string? ProductId { get; private set; }
-    public string Description { get; private set; }
+    public string ProductId { get; private set; } = null!;
+    public string Description { get; private set; } = null!;
     public int Quantity { get; private set; }
     public Money UnitPrice { get; private set; }
     public Money Subtotal => UnitPrice.Multiply(Quantity);
@@ -35,7 +35,7 @@ public class OrderItem
         Quantity = quantity;
     }
 
-    internal static OrderItem Create(
+    public static OrderItem Create(
         Guid orderId,
         string description,
         Money unitPrice,

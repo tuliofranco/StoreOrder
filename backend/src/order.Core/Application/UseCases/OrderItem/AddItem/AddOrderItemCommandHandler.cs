@@ -21,7 +21,7 @@ public class AddOrderItemCommandHandler
         _uow = uow;
     }
 
-    public async Task<AddOrderItemResponse?> Handle(
+    public async Task<AddOrderItemResponse> Handle(
         AddOrderItemCommand request,
         CancellationToken ct)
     {
