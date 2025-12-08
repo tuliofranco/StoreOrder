@@ -30,11 +30,6 @@ public class AddOrderItemCommandHandler
         if (order is null)
             throw new OrderNotFoundException($"Order '{request.OrderNumber}' not found.");
 
-        if (order.Status == OrderStatus.Closed)
-        {
-            throw new InvalidOperationException(
-                $"Cannot add items to a closed order. OrderNumber: {order.OrderNumber.Value}");
-        }
         var unitPrice = Money.FromDecimal(request.UnitPrice);
 
         var existingItem = order.Items

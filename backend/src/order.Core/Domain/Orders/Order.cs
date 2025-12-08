@@ -1,6 +1,9 @@
 using Order.Core.Domain.Orders.Enums;
+using Order.Core.Domain.Orders.Events;
 using Order.Core.Domain.Orders.ValueObjects;
 using OrderItem = Order.Core.Domain.Orders.OrderItem;
+using Order.Core.Domain.Common;
+using Order.Core.Domain.Orders.Rules; 
 
 namespace Order.Core.Domain.Orders;
 
@@ -41,12 +44,14 @@ public class Order : IAggregateRoot
 
     public void AddItem(OrderItem item)
     {
+        EnsureOrderIsOpen();
         Items.Add(item);
         Total = Total.Add(item.Subtotal);
         UpdatedAt = DateTime.UtcNow;
     }
     public void UpdateItemQuantity(OrderItem item, int delta)
     {
+        EnsureOrderIsOpen();
         var oldSubtotal = item.Subtotal;
 
         item.ChangeQuantity(delta);
@@ -70,6 +75,7 @@ public class Order : IAggregateRoot
 
     public void RemoveItem(OrderItem item)
     {
+        EnsureOrderIsOpen();
         Total = Total.Subtract(item.Subtotal);
 
         Items.Remove(item);
@@ -78,12 +84,21 @@ public class Order : IAggregateRoot
 
     public void Close()
     {
-        if (Status != OrderStatus.Open)
-            throw new InvalidOperationException("Only orders in 'Open' status can be closed.");
+        OrderStatusRule.EnsureOrderIsOpen(Status, OrderNumber.Value);
+        OrderItemsRule.EnsureOrderHasItems(Items, OrderNumber.Value);
 
         Status = OrderStatus.Closed;
         var now = DateTime.UtcNow;
         ClosedAt = now;
         UpdatedAt = now;
     }
+
+    private void EnsureOrderIsOpen()
+    {
+        OrderStatusRule.EnsureOrderIsOpen(Status, OrderNumber.Value);
+    }
+    public void AddDomainEvent(IDomainEvent domainEvent)
+        => _domainEvents.Add(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
 }

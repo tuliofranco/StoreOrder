@@ -24,15 +24,6 @@ public sealed class CloseOrderCommandHandler
         if (order is null)
             throw new OrderNotFoundException($"Id do pedido: {request.OrderNumber}");
 
-        if (order.Status != OrderStatus.Open)
-            throw new InvalidOperationException(
-                $"- Id do pedido: {request.OrderNumber}; Status atual do pedido: {order.Status}.");
-
-        if (order.Items is null || order.Items.Count == 0)
-        {
-            throw new InvalidOperationException(
-                $"Id do pedido: {request.OrderNumber}; O pedido não pode ser fechado pois não possui itens.");
-        }
         order.Close();
 
         await _uow.CommitAsync(ct);

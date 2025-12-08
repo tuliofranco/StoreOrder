@@ -32,12 +32,6 @@ public class RemoveOrderItemCommandHandler
         if (order is null)
             throw new OrderNotFoundException($"Order '{request.OrderNumber}' not found.");
 
-        if (order.Status == OrderStatus.Closed)
-        {
-            throw new InvalidOperationException(
-                $"Cannot remove items from a closed order. OrderNumber: {order.OrderNumber.Value}");
-        }
-
         var item = order.Items
             .FirstOrDefault(i => i.ProductId == request.ProductId);
 
