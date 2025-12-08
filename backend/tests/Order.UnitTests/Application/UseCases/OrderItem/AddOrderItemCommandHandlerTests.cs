@@ -12,6 +12,7 @@ using Order.Core.Domain.Orders.ValueObjects;
 using OrderEntity = Order.Core.Domain.Orders.Order;
 using OrderItemEntity = Order.Core.Domain.Orders.OrderItem;
 using Xunit;
+using Order.Core.Application.Common.Exceptions;
 
 namespace Order.UnitTests.Application.UseCases.OrderItem;
 
@@ -162,7 +163,7 @@ public class AddOrderItemCommandHandlerTests
             .Setup(r => r.GetByOrderNumberAsync(orderNumber, It.IsAny<CancellationToken>()))
             .ReturnsAsync((OrderEntity?)null);
 
-        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(
+        var ex = await Assert.ThrowsAsync<OrderNotFoundException>(
             () => _handler.Handle(command, CancellationToken.None));
 
         Assert.Contains(orderNumber, ex.Message);

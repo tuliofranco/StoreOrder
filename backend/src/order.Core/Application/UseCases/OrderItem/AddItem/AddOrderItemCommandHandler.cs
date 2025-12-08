@@ -4,6 +4,7 @@ using Order.Core.Application.Abstractions.Repositories;
 using OrdItem =Order.Core.Domain.Orders.OrderItem;
 using Order.Core.Application.Abstractions;
 using Order.Core.Domain.Orders.Enums;
+using Order.Core.Application.Common.Exceptions;
 
 namespace Order.Core.Application.UseCases.OrderItem.AddItem;
 
@@ -27,7 +28,7 @@ public class AddOrderItemCommandHandler
     {
         var order = await _orderRepository.GetByOrderNumberAsync(request.OrderNumber);
         if (order is null)
-            throw new KeyNotFoundException($"Order '{request.OrderNumber}' not found.");
+            throw new OrderNotFoundException($"Order '{request.OrderNumber}' not found.");
 
         if (order.Status == OrderStatus.Closed)
         {

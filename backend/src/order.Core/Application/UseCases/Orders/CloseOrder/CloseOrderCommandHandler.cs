@@ -1,6 +1,7 @@
 using MediatR;
 using Order.Core.Application.Abstractions;
 using Order.Core.Application.Abstractions.Repositories;
+using Order.Core.Application.Common.Exceptions;
 using Order.Core.Domain.Orders.Enums;
 
 namespace Order.Core.Application.UseCases.Orders.CloseOrder;
@@ -21,7 +22,7 @@ public sealed class CloseOrderCommandHandler
     {
         var order = await _repository.GetByOrderNumberAsync(request.OrderNumber, ct);
         if (order is null)
-            throw new KeyNotFoundException($"Id do pedido: {request.OrderNumber}");
+            throw new OrderNotFoundException($"Id do pedido: {request.OrderNumber}");
 
         if (order.Status != OrderStatus.Open)
             throw new InvalidOperationException(

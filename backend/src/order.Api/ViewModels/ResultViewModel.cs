@@ -1,32 +1,38 @@
-
 namespace Order.Api.ViewModels;
 
 public class ResultViewModel<T>
 {
+    private readonly List<string> _errors = new();
 
     public ResultViewModel() { }
-
-    public ResultViewModel(T data, List<string> errors)
-    {
-        Data = data;
-        Errors = errors;
-    }
 
     public ResultViewModel(T data)
     {
         Data = data;
     }
 
-    public ResultViewModel(List<string> errors)
+    public ResultViewModel(T data, IEnumerable<string> errors)
     {
-        Errors = errors;
+        Data = data;
+        _errors.AddRange(errors);
+    }
+
+    public ResultViewModel(IEnumerable<string> errors)
+    {
+        _errors.AddRange(errors);
     }
 
     public ResultViewModel(string error)
     {
-        Errors.Add(error);
+        _errors.Add(error);
     }
 
     public T? Data { get; set; }
-    public List<string>? Errors { get;  set; } = new();
+
+    public IReadOnlyList<string> Errors => _errors;
+
+    public void AddError(string error)
+    {
+        _errors.Add(error);
+    }
 }

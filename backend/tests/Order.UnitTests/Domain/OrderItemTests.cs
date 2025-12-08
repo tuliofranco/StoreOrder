@@ -54,7 +54,7 @@ public class OrderItemTests
 
 
         Assert.Throws<ArgumentException>(() =>
-            OrderItemEntity.Create(orderId, description, Money.FromDecimal(10m), 1));
+            OrderItemEntity.Create(orderId, description!, Money.FromDecimal(10m), 1));
     }
 
     [Theory]
