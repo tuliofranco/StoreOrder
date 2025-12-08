@@ -31,6 +31,7 @@ public static class DependencyInjection
         }
         else
         {
+            services.AddDistributedMemoryCache();
             services.AddSingleton<ICacheService, NullCacheService>();
         }
 
@@ -42,13 +43,6 @@ public static class DependencyInjection
             );
         });
 
-        services.AddStackExchangeRedisCache(options =>
-        {
-            options.Configuration = redisConnection;
-            options.InstanceName = "order-service:";
-        });
-
-        services.AddScoped<ICacheService, DistributedCacheService>();
 
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
