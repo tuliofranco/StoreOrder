@@ -91,6 +91,7 @@ public class Order : IAggregateRoot
         var now = DateTime.UtcNow;
         ClosedAt = now;
         UpdatedAt = now;
+        AddDomainEvent(new OrderClosedDomainEvent(Id, OrderNumber.Value, now));
     }
 
     private void EnsureOrderIsOpen()
