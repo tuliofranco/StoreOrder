@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Order.Api.Middlewares;
 using Order.Api.Controllers.Internal;
 using Order.Api.Services;
+using Order.Infrastructure.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,17 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(Order.Core.Application.UseCases.Orders.CreateOrder.CreateOrderCommand).Assembly)
 );
 
+builder.Logging.ClearProviders();
+builder.Logging.AddJsonConsole(o =>
+{
+    o.IncludeScopes = true;
+});
+
+builder.Logging.AddFilter("", LogLevel.Information); 
+builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
+builder.Logging.AddFilter("System", LogLevel.Warning);
+builder.Logging.AddFilter("Microsoft.Hosting.Lifetime", LogLevel.None);
+
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(
         options =>
@@ -73,6 +85,8 @@ using (var scope = app.Services.CreateScope())
         db.Database.Migrate();
 }
 
+app.UseRouting();
+app.UseMiddleware<OrderIdRouteScopeMiddleware>();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -80,7 +94,6 @@ if (app.Environment.IsDevelopment())
 }
 app.UseExceptionHandler();
 
-// app.UseHttpsRedirection();
 
 app.MapControllers();
 

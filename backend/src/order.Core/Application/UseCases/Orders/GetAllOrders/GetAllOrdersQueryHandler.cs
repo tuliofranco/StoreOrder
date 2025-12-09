@@ -1,17 +1,20 @@
 using MediatR;
 using Order.Core.Application.Abstractions.Repositories;
 using Order.Core.Application.Common;
+using Microsoft.Extensions.Logging;
 
 namespace Order.Core.Application.UseCases.Orders.GetAllOrders;
 
-public class GetAllOrdersQueryHandler 
+public class GetAllOrdersQueryHandler
     : IRequestHandler<GetAllOrdersQuery, PagedResult<GetAllOrdersResponse>>
 {
     private readonly IOrderRepository _repository;
+    private readonly ILogger<GetAllOrdersQueryHandler> _logger;
 
-    public GetAllOrdersQueryHandler(IOrderRepository repository)
+    public GetAllOrdersQueryHandler(IOrderRepository repository, ILogger<GetAllOrdersQueryHandler> logger)
     {
         _repository = repository;
+        _logger = logger;
     }
 
     public async Task<PagedResult<GetAllOrdersResponse>> Handle(
@@ -20,6 +23,12 @@ public class GetAllOrdersQueryHandler
     {
         var page = request.page < 0 ? 0 : request.page;
         var pageSize = request.pageSize < 0 ? 25 : request.pageSize;
+
+        _logger.LogInformation(
+            "Handling GetAllOrdersQuery. Page {Page}, PageSize {PageSize}, StatusFilter {Status}",
+            page,
+            pageSize,
+            request.Status?.ToString() ?? "null");
 
         var totalItems = await _repository.CountAsync(ct);
 
@@ -35,8 +44,15 @@ public class GetAllOrdersQueryHandler
             order.ClosedAt,
             order.Total.Amount
         )).ToList();
-        
+
         var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+        _logger.LogInformation(
+            "GetAllOrdersQuery completed. Page {Page}, Returned {Count} items, TotalItems {TotalItems}, TotalPages {TotalPages}",
+            page,
+            mappedItems.Count,
+            totalItems,
+            totalPages);
 
         return new PagedResult<GetAllOrdersResponse>
         {

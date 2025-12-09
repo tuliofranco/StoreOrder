@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Order.Core.Application.UseCases.Orders.CreateOrder;
 using Order.Core.Application.UseCases.Orders.GetOrderByOrderNumber;
 using Order.Api.ViewModels;
@@ -22,28 +23,45 @@ namespace Order.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ILogger<OrdersController> _logger;
 
-    public OrdersController(IMediator mediator)
+    public OrdersController(IMediator mediator, ILogger<OrdersController> logger)
     {
         _mediator = mediator;
+        _logger = logger;
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request ,CancellationToken ct)
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request, CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        _logger.LogInformation(
+            "CreateOrder requested for ClientName {ClientName}",
+            request.ClientName);
+
         var result = await _mediator.Send(new CreateOrderCommand(request.ClientName), ct);
+
+        _logger.LogInformation(
+            "CreateOrder succeeded with OrderNumber {OrderNumber}",
+            result.OrderNumber);
+
         return Ok(new ResultViewModel<CreateOrderResponse>(result));
     }
 
-
     [HttpPost("{orderNumber}/addItem")]
     public async Task<IActionResult> AddOrderItem(
-    string orderNumber,
-    [FromBody] AddOrderItemRequest request,
-    CancellationToken ct)
+        string orderNumber,
+        [FromBody] AddOrderItemRequest request,
+        CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        _logger.LogInformation(
+            "AddOrderItem requested for OrderNumber {OrderNumber} with Description {Description}, Quantity {Quantity}",
+            orderNumber,
+            request.Description,
+            request.Quantity);
 
         var command = new AddOrderItemCommand(
             orderNumber,
@@ -56,7 +74,10 @@ public class OrdersController : ControllerBase
             .Send(command, ct)
             .ConfigureAwait(false);
 
-
+        _logger.LogInformation(
+            "AddOrderItem completed for OrderNumber {OrderNumber}. ItemId: {ItemId}",
+            orderNumber,
+            result?.Items.Select(i => i.ProductId));
 
         return Ok(new ResultViewModel<AddOrderItemResponse?>(result));
     }
@@ -64,24 +85,40 @@ public class OrdersController : ControllerBase
     [HttpGet("{orderNumber}")]
     public async Task<IActionResult> GetOrder(string orderNumber, CancellationToken ct)
     {
+        _logger.LogInformation(
+            "GetOrder requested for OrderNumber {OrderNumber}",
+            orderNumber);
 
         var result = await _mediator.Send(new GetOrderByOrderNumberQuery(orderNumber), ct);
-        return Ok(new ResultViewModel<GetOrderByOrderNumberResponse>(result));
 
+        _logger.LogInformation(
+            "GetOrder completed for OrderNumber {OrderNumber}",
+            orderNumber);
+
+        return Ok(new ResultViewModel<GetOrderByOrderNumberResponse>(result));
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAllOrders(
-            CancellationToken ct,
-            [FromQuery] int page = 0,
-            [FromQuery] int pageSize = 25,
-            [FromQuery] OrderStatus? status = null)
-
+        CancellationToken ct,
+        [FromQuery] int page = 0,
+        [FromQuery] int pageSize = 25,
+        [FromQuery] OrderStatus? status = null)
     {
+        _logger.LogInformation(
+            "GetAllOrders requested. Page {Page}, PageSize {PageSize}, StatusFilter {Status}",
+            page,
+            pageSize,
+            status?.ToString() ?? "null");
+
         var query = new GetAllOrdersQuery(page, pageSize, status);
         var result = await _mediator.Send(query, ct);
+
+        _logger.LogInformation(
+            "GetAllOrders completed. Page {Page}, ReturnedCount {Count}",
+            page,result.Items.Count());
+
         return Ok(new ResultViewModel<PagedResult<GetAllOrdersResponse>>(result));
-        
     }
 
     [HttpPatch("{orderNumber}")]
@@ -89,11 +126,20 @@ public class OrdersController : ControllerBase
         string orderNumber,
         CancellationToken ct)
     {
+        _logger.LogInformation(
+            "CloseOrder requested for OrderNumber {OrderNumber}",
+            orderNumber);
+
         var command = new CloseOrderCommand(orderNumber);
         var result = await _mediator.Send(command, ct);
+
+        _logger.LogInformation(
+            "CloseOrder completed for OrderNumber {OrderNumber} with Status {Status}",
+            orderNumber,
+            result.Status);
+
         return Ok(new ResultViewModel<CloseOrderResponse>(result));
     }
-
 
     [HttpDelete("{orderNumber}/{productId}")]
     public async Task<IActionResult> RemoveItem(
@@ -101,13 +147,23 @@ public class OrdersController : ControllerBase
         string productId,
         CancellationToken ct)
     {
+        _logger.LogInformation(
+            "RemoveItem requested. OrderNumber {OrderNumber}, ProductId {ProductId}",
+            orderNumber,
+            productId);
 
         var command = new RemoveOrderItemCommand(
-                orderNumber,
-                productId
-            );
+            orderNumber,
+            productId
+        );
 
         var result = await _mediator.Send(command, ct);
+
+        _logger.LogInformation(
+            "RemoveItem completed. OrderNumber {OrderNumber}, ProductId {ProductId}",
+            orderNumber,
+            productId);
+
         return Ok(new ResultViewModel<RemoveOrderItemResponse>(result));
     }
 }

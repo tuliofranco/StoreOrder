@@ -9,10 +9,12 @@ namespace Order.Api.Services;
 public class SqlExecutionService : ISqlExecutionService
 {
     private readonly StoreOrderDbContext _db;
+        private readonly ILogger<SqlExecutionService> _logger;
 
-    public SqlExecutionService(StoreOrderDbContext db)
+    public SqlExecutionService(StoreOrderDbContext db, ILogger<SqlExecutionService> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     [SuppressMessage(
@@ -21,6 +23,10 @@ public class SqlExecutionService : ISqlExecutionService
         Justification = "Endpoint interno para consultas ad-hoc; acesso restrito, SQL é intencionalmente dinâmico.")]
     public async Task<object?> ExecuteQueryAsync(string query, CancellationToken ct = default)
     {
+        _logger.LogInformation(
+            "Executing dynamic SQL: {Sql}",
+            query);
+            
         await using var connection = _db.Database.GetDbConnection();
         await connection.OpenAsync(ct);
 
