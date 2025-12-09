@@ -35,6 +35,7 @@ public class StoreOrderDbContext : DbContext
 
         order.HasIndex(o => o.OrderNumber)
             .IsUnique();
+        order.Property(o => o.ClientName);
 
         order.Property(o => o.OrderNumber)
             .HasConversion(

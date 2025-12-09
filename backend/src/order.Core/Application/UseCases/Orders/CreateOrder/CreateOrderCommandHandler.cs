@@ -18,13 +18,14 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Cre
 
     public async Task<CreateOrderResponse> Handle(CreateOrderCommand request, CancellationToken ct = default)
     {
-        OrderEntity order = OrderEntity.Create();
+        OrderEntity order = OrderEntity.Create(request.clientName);
         await _repository.AddAsync(order, ct);
 
         await _uow.CommitAsync();
 
         return new CreateOrderResponse(
             order.OrderNumber.Value,
+            order.ClientName,
             order.Status.ToString(),
             order.CreatedAt,
             order.UpdatedAt,
