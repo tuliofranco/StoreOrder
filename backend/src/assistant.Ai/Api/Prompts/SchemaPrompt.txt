@@ -1,0 +1,67 @@
+=== SCHEMA DO BANCO DE DADOS ===
+
+Banco de dados PostgreSQL com 3 tabelas principais: 
+- orders
+- order_items
+
+Use SEMPRE este schema como fonte da verdade ao gerar SQL.
+
+--------------------------------
+TABELA: orders
+--------------------------------
+Nome da tabela: orders
+
+Descrição:
+Tabela de pedidos. Cada linha representa um pedido.
+
+Colunas principais (use SEMPRE com aspas e essa grafia exata):
+
+- "Id"         (uuid)            → identificador único do pedido (PRIMARY KEY)
+- "OrderNumber" (text)           → código amigável do pedido, ex: "20251208446-56500" (único)
+- "Status"     (text)            → status do pedido. Exemplo típico: 'Open', 'Closed'
+- "Total"      (numeric(18,2))   → valor total do pedido
+- "CreatedAt"  (timestamp)       → data/hora de criação
+- "UpdatedAt"  (timestamp)       → data/hora da última atualização (pode ser NULL)
+- "ClosedAt"   (timestamp)       → data/hora de fechamento (pode ser NULL se ainda estiver aberto)
+- "DeletedAt"  (timestamp)       → data/hora de deleção lógica (soft delete). Se for NULL, o pedido está ativo.
+
+Regras importantes:
+- Para considerar pedidos "ativos", filtre por deletedat IS NULL.
+- Para pedidos fechados, status normalmente é 'Closed' e closedat NÃO é NULL.
+- Para pedidos em aberto, status normalmente é 'Open' e closedat é NULL.
+
+Índices/constraints relevantes:
+- PRIMARY KEY (id)
+- UNIQUE (ordernumber)
+
+--------------------------------
+TABELA: order_items
+--------------------------------
+Nome da tabela: order_items
+
+Descrição:
+Itens de cada pedido. Um pedido (orders) pode ter vários itens em order_items.
+
+Colunas principais:
+
+- id          (uuid)           → identificador único do item (PRIMARY KEY)
+- orderid     (uuid)           → referência ao pedido (orders.id)
+- productid   (text)           → identificador do produto (único por item, tamanho máximo ~60)
+- description (text)           → descrição do produto
+- unitprice   (numeric(18,2))  → preço unitário do item
+- quantity    (integer)        → quantidade do item
+
+Relações:
+- order_items.orderid REFERENCIA orders.id
+- Relação 1:N → 1 pedido (orders) possui N itens (order_items)
+
+Regras importantes:
+- Para buscar itens de um pedido específico:
+  - Use o orderid diretamente, OU
+  - Faça JOIN com orders usando orders.id = order_items.orderid.
+- Não existe coluna de subtotal. Se precisar, calcule em SQL como:
+  unitprice * quantity AS subtotal
+
+Índices/constraints relevantes:
+- PRIMARY KEY (id)
+- UNIQUE (productid)  -- em nível de item, conforme configuração atual
