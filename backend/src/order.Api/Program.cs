@@ -5,7 +5,7 @@ using Order.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Order.Api.Middlewares;
-using Order.Api.Internal;
+using Order.Api.Controllers.Internal;
 using Order.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
