@@ -31,7 +31,7 @@ public class CreateOrderCommandHandlerTests
     [Fact]
     public async Task Handle_WhenCalled_ShouldCreateOrderPersistAndReturnMappedResponse()
     {
-        var command = new CreateOrderCommand();
+        var command = new CreateOrderCommand("Tulio Franco");
         OrderEntity? capturedOrder = null;
 
         _orderRepositoryMock

@@ -38,7 +38,7 @@ public class AddOrderItemCommandHandlerTests
 
     private static OrderEntity CreateClosedOrderWithItems()
     {
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 1);
@@ -60,7 +60,7 @@ public class AddOrderItemCommandHandlerTests
             Quantity: 2
         );
 
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         _orderRepositoryMock
             .Setup(r => r.GetByOrderNumberAsync(orderNumber, It.IsAny<CancellationToken>()))
@@ -112,7 +112,7 @@ public class AddOrderItemCommandHandlerTests
     {
         var orderNumber = "20251208002-00001";
         var unitPrice = Money.FromDecimal(15m);
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var existingItem = OrderItemEntity.Create(order.Id, "Product B", unitPrice, 1);
         order.AddItem(existingItem);

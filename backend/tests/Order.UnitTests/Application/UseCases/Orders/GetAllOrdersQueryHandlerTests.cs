@@ -28,8 +28,8 @@ public class GetAllOrdersQueryHandlerTests
     {
         var statusFilter = OrderStatus.Open;
 
-        var order1 = OrderEntity.Create();
-        var order2 = OrderEntity.Create();
+        var order1 = OrderEntity.Create("Tulio Franco");
+        var order2 = OrderEntity.Create("Tulio Franco");
 
         var pagedOrders = new PagedResult<OrderEntity>
         {
@@ -80,7 +80,7 @@ public class GetAllOrdersQueryHandlerTests
     [Fact]
     public async Task Handle_ShouldNormalizeNegativePageAndPageSize()
     {
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var pagedOrders = new PagedResult<OrderEntity>
         {

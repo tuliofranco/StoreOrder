@@ -36,7 +36,7 @@ public class RemoveOrderItemCommandHandlerTests
     public async Task Handle_WhenOrderExistsAndItemExists_ShouldRemoveItemAndCommit()
     {
         var orderNumber = "20251208001-00001";
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 2);
@@ -102,7 +102,7 @@ public class RemoveOrderItemCommandHandlerTests
     public async Task Handle_WhenOrderIsClosed_ShouldThrowInvalidOperationException()
     {
         var orderNumber = "20251208002-00001";
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product B", unitPrice, 1);
@@ -134,7 +134,7 @@ public class RemoveOrderItemCommandHandlerTests
     public async Task Handle_WhenItemDoesNotExistInOrder_ShouldThrowKeyNotFoundException()
     {
         var orderNumber = "20251208003-00001";
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var command = new RemoveOrderItemCommand(
             OrderNumber: orderNumber,

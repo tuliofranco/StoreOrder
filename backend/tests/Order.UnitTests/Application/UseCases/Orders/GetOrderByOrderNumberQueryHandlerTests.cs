@@ -47,7 +47,7 @@ public class GetOrderByOrderNumberQueryHandlerTests
                 It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 2);

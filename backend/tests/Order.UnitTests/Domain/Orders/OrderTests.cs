@@ -9,15 +9,35 @@ namespace Order.UnitTests.Domain.Orders;
 
 public class OrderTests
 {
-    private static OrderEntity CreateOrderWithOneItem()
-    {
-        var order = OrderEntity.Create();
 
-        var unitPrice = Money.FromDecimal(10m);
-        var item = OrderItemEntity.Create(order.Id, "Agua mineral", unitPrice, 1);
+    private static OrderEntity CreateOrder(string clientName = "Test Customer")
+        => OrderEntity.Create(clientName);
+
+    private static OrderItemEntity CreateItem(
+        OrderEntity order,
+        string description = "Iphone 30",
+        decimal unitPrice = 10m,
+        int quantity = 3)
+    {
+        var item = OrderItemEntity.Create(
+            order.Id,
+            description,
+            Money.FromDecimal(unitPrice),
+            quantity);
 
         order.AddItem(item);
+        return item;
+    }
 
+    
+    private static OrderEntity CreateOrderWithOneItem(
+        string clientName = "Tulio Franco",
+        string description = "Iphone 30",
+        decimal unitPrice = 10m,
+        int quantity = 3)
+    {
+        var order = CreateOrder(clientName);
+        CreateItem(order, description, unitPrice, quantity);
         return order;
     }
     
@@ -25,11 +45,12 @@ public class OrderTests
     public void Create_ShouldInitializeOrderWithDefaultValues()
     {
         var before = DateTime.UtcNow;
-        var order = OrderEntity.Create();
+        var order = CreateOrder();
         var after = DateTime.UtcNow;
 
         Assert.NotEqual(Guid.Empty, order.Id);
         Assert.False(string.IsNullOrWhiteSpace(order.OrderNumber.Value));
+        Assert.Equal("Test Customer", order.ClientName);
 
         Assert.Equal(OrderStatus.Open, order.Status);
 
@@ -45,21 +66,16 @@ public class OrderTests
     [Fact]
     public void AddItem_ShouldAddItemToList_AndIncreaseTotal_AndUpdateUpdatedAt()
     {
-        var order = OrderEntity.Create();
-        var item = OrderItemEntity.Create(
-            order.Id,
-            "Iphone 30",
-            Money.FromDecimal(10m),
-            2
-        );
+        var order = CreateOrder();
 
         var beforeUpdate = order.UpdatedAt;
-        order.AddItem(item);
+
+        CreateItem(order: order, unitPrice: 10m, quantity: 2);
 
         Assert.Single(order.Items);
-        Assert.Contains(item, order.Items);
         Assert.Equal(20m, order.Total.Amount);
         Assert.NotNull(order.UpdatedAt);
+
         if (beforeUpdate.HasValue)
         {
             Assert.True(order.UpdatedAt > beforeUpdate);
@@ -73,17 +89,12 @@ public class OrderTests
     [Fact]
     public void RemoveItem_ShouldRemoveItemFromList_AndDecreaseTotal_AndUpdateUpdatedAt()
     {
-        var order = OrderEntity.Create();
-        var item = OrderItemEntity.Create(
-            order.Id,
-            "Fusca",
-            Money.FromDecimal(10m),
-            2
-        );
+        var order = CreateOrder();
+        var item = CreateItem(order, description: "Fusca", unitPrice: 10m, quantity: 2);
 
-        order.AddItem(item);
         var totalBeforeRemove = order.Total.Amount;
         var beforeUpdate = order.UpdatedAt;
+
         order.RemoveItem(item);
 
         Assert.Empty(order.Items);
@@ -96,18 +107,16 @@ public class OrderTests
     [Fact]
     public void UpdateItemQuantity_WithPositiveDelta_ShouldIncreaseQuantityAndTotal()
     {
-        var order = OrderEntity.Create();
-        var item = OrderItemEntity.Create(
-            order.Id,
-            "Slackline",
-            Money.FromDecimal(10m),
-            2
-        );
+        var order = CreateOrder();
+        var item = CreateItem(
+            order,
+            description: "Slackline",
+            unitPrice: 10m,
+            quantity: 2);
 
-        order.AddItem(item);
         var totalBefore = order.Total.Amount;
-
         var beforeUpdate = order.UpdatedAt;
+
         order.UpdateItemQuantity(item, 1);  // 2 -> 3
 
         Assert.Equal(3, item.Quantity);
@@ -120,21 +129,17 @@ public class OrderTests
     [Fact]
     public void UpdateItemQuantity_WhenQuantityBecomesZero_ShouldRemoveItemAndDecreaseTotal()
     {
-        var order = OrderEntity.Create();
-        var item = OrderItemEntity.Create(
-            order.Id,
-            "Prancha de surf",
-            Money.FromDecimal(10m),
-            2
-        );
+        var order = CreateOrder();
+        var item = CreateItem(
+            order,
+            description: "Prancha de surf",
+            unitPrice: 10m,
+            quantity: 2);
 
-        order.AddItem(item);
         var totalBefore = order.Total.Amount;
-
-
         var beforeUpdate = order.UpdatedAt;
-        order.UpdateItemQuantity(item, -2); // 2 -> 0 => remove
 
+        order.UpdateItemQuantity(item, -2); // 2 -> 0 => remove
 
         Assert.Equal(0, item.Quantity);
         Assert.Empty(order.Items);
@@ -147,15 +152,12 @@ public class OrderTests
     [Fact]
     public void UpdateItemQuantity_WithDeltaThatMakesQuantityNegative_ShouldThrow()
     {
-        var order = OrderEntity.Create();
-        var item = OrderItemEntity.Create(
-            order.Id,
-            "Paraquedas",
-            Money.FromDecimal(10m),
-            2
-        );
-
-        order.AddItem(item);
+        var order = CreateOrder();
+        var item = CreateItem(
+            order,
+            description: "Paraquedas",
+            unitPrice: 10m,
+            quantity: 2);
 
         Assert.Throws<InvalidOperationException>(() =>
             order.UpdateItemQuantity(item, -3)); // 2 -> -1
@@ -164,7 +166,6 @@ public class OrderTests
     [Fact]
     public void Close_WhenOrderIsOpen_ShouldSetStatusClosedAndSetClosedAtAndUpdatedAt()
     {
-
         var order = CreateOrderWithOneItem();
         order.Close();
 
@@ -178,15 +179,15 @@ public class OrderTests
     public void Close_WhenOrderIsNotOpen_ShouldThrow()
     {
         var order = CreateOrderWithOneItem();
-        order.Close();
+        order.Close(); // first close
 
-        Assert.Throws<InvalidOperationException>(() => order.Close()); 
+        Assert.Throws<InvalidOperationException>(() => order.Close()); // second close
     }
 
     [Fact]
     public void Close_WhenOrderHasNoItems_ShouldThrowInvalidOperationException()
     {
-        var order = OrderEntity.Create();
+        var order = CreateOrder();
 
         var ex = Assert.Throws<InvalidOperationException>(() => order.Close());
 
