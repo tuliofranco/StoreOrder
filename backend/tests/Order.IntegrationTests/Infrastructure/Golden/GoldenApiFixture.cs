@@ -34,6 +34,8 @@ public class GoldenApiFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _container.StartAsync();
+        
+        Environment.SetEnvironmentVariable("STRING_CONNECTION", ConnectionString);
 
         var options = new DbContextOptionsBuilder<StoreOrderDbContext>()
             .UseNpgsql(ConnectionString)
