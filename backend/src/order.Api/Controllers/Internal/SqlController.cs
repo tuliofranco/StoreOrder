@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Order.Api.Services;
 
 
-namespace Order.Api.Internal;
+namespace Order.Api.Controllers.Internal;
 [ApiController]
 [Route("internal/sql")]
 public class SqlController : ControllerBase
@@ -17,16 +17,9 @@ public class SqlController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Execute([FromBody] SqlRequest request)
     {
-         try
-        {
-            var result = await _sql.ExecuteQueryAsync(request.Query, HttpContext.RequestAborted);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = "Erro ao executar SQL.", details = ex.Message });
-        }
+        ArgumentNullException.ThrowIfNull(request);
+        var result = await _sql.ExecuteQueryAsync(request.Query, HttpContext.RequestAborted);
+        return Ok(result);
     }
 }
 
-public record SqlRequest(string Query);

@@ -33,7 +33,7 @@ public class CloseOrderCommandHandlerTests
 
     public static OrderEntity CreateClosedOrderWithItems()
     {
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 1);
@@ -50,7 +50,7 @@ public class CloseOrderCommandHandlerTests
         var orderNumber = "20251208001-00001";
         var command = new CloseOrderCommand(orderNumber);
 
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
 
         var unitPrice = Money.FromDecimal(10m);
         var item = OrderItemEntity.Create(order.Id, "Product A", unitPrice, 2);
@@ -130,7 +130,7 @@ public class CloseOrderCommandHandlerTests
     [Fact]
     public async Task Handle_WhenOrderHasNoItems_ShouldThrowInvalidOperationException()
     {
-        var order = OrderEntity.Create();
+        var order = OrderEntity.Create("Tulio Franco");
         var orderNumber = order.OrderNumber.Value;
         var command = new CloseOrderCommand(orderNumber);
 

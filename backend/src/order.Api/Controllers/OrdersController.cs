@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using Order.Api.Errors;
 using Order.Core.Application.Common;
 using Order.Core.Domain.Orders.Enums;
+using Order.Api.ViewModels.Order;
 
 namespace Order.Api.Controllers;
 
@@ -28,9 +29,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateOrder(CancellationToken ct)
+    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request ,CancellationToken ct)
     {
-        var result = await _mediator.Send(new CreateOrderCommand(), ct);
+        ArgumentNullException.ThrowIfNull(request);
+        var result = await _mediator.Send(new CreateOrderCommand(request.ClientName), ct);
         return Ok(new ResultViewModel<CreateOrderResponse>(result));
     }
 

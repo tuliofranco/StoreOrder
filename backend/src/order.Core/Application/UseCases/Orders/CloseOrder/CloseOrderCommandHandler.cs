@@ -30,6 +30,7 @@ public sealed class CloseOrderCommandHandler
 
         return new CloseOrderResponse(
             order.OrderNumber.Value,
+            order.ClientName,
             order.Status.ToString(),
             order.CreatedAt,
             order.UpdatedAt,

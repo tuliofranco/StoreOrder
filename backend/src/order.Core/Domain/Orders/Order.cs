@@ -11,6 +11,7 @@ public class Order : IAggregateRoot
 {
     public Guid Id { get; private set; }
     public OrderNumber OrderNumber { get; private set; }
+    public string ClientName { get; set; } = null!;
     public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; }
@@ -23,7 +24,7 @@ public class Order : IAggregateRoot
 
     private Order() { }
 
-    public static Order Create()
+    public static Order Create(string clientName)
     {
         var now = DateTime.UtcNow;
         var orderNumber = OrderNumber.Create(now);
@@ -32,6 +33,7 @@ public class Order : IAggregateRoot
         {
             Id = Guid.NewGuid(),
             OrderNumber = orderNumber,
+            ClientName = clientName,
             Status = OrderStatus.Open,
             CreatedAt = now,
             Total = Money.FromDecimal(0)

@@ -49,6 +49,7 @@ public class RemoveOrderItemCommandHandler
         return new RemoveOrderItemResponse
         {
             OrderNumber = order.OrderNumber.Value,
+            ClientName = order.ClientName,
             Status = order.Status.ToString(),
             CreatedAt = order.CreatedAt,
             UpdatedAt = order.UpdatedAt,

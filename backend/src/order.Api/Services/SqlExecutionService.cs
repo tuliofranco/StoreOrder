@@ -1,4 +1,5 @@
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using Order.Api.Services;
 using Order.Infrastructure.Persistence;
@@ -14,6 +15,10 @@ public class SqlExecutionService : ISqlExecutionService
         _db = db;
     }
 
+    [SuppressMessage(
+        "Security",
+        "CA2100:Review SQL queries for security vulnerabilities",
+        Justification = "Endpoint interno para consultas ad-hoc; acesso restrito, SQL é intencionalmente dinâmico.")]
     public async Task<object?> ExecuteQueryAsync(string query, CancellationToken ct = default)
     {
         await using var connection = _db.Database.GetDbConnection();

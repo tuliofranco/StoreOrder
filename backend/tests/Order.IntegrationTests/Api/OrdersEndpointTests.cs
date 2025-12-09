@@ -14,18 +14,17 @@ using Order.Core.Application.UseCases.Orders.CloseOrder;
 using Order.Core.Domain.Orders.Enums;
 using Order.IntegrationTests.Infrastructure.E2E;
 using Xunit;
+using Order.Api.ViewModels.Order;
 
 namespace Order.IntegrationTests.Api;
 
 [Collection("E2E")]
 public class OrdersEndpointTests
 {
-    private readonly ApiFixture _fixture;
     private readonly HttpClient _client;
 
     public OrdersEndpointTests(ApiFixture fixture)
     {
-        _fixture = fixture;
         _client = fixture.Client;
     }
 
@@ -46,8 +45,13 @@ public class OrdersEndpointTests
     [Fact]
     public async Task FullFlow_ShouldCreate_AddItem_Close_AndReturnOrder()
     {
+        var createOrderRequest = new CreateOrderRequest
+        {
+            ClientName = "Tulio Franco"
+        };
+
         // 1. Cria o pedido
-        var createResponse = await _client.PostAsync("/api/v1/orders", content: null);
+        var createResponse = await _client.PostAsJsonAsync("/api/v1/orders",  createOrderRequest);
 
         createResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -58,8 +62,10 @@ public class OrdersEndpointTests
         createResult.Should().NotBeNull();
         createResult!.Data.Should().NotBeNull();
 
+        var createdOrder = createResult.Data!;
         var orderNumber = createResult.Data!.OrderNumber;
         orderNumber.Should().NotBeNullOrWhiteSpace();
+        createdOrder.clientName.Should().Be(createOrderRequest.ClientName);
 
         // 2.Adicionar um item ao pedido
         var addItemRequest = new AddOrderItemRequest

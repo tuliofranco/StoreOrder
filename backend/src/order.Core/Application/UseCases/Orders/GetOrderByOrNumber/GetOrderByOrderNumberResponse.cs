@@ -10,6 +10,7 @@ public record GetOrderByOrderNumberItemResponse(
 
 public record GetOrderByOrderNumberResponse(
     string OrderNumber,
+    string ClientName,
     string Status,
     DateTime CreatedAt,
     DateTime? UpdatedAt,

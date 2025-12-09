@@ -1,9 +1,13 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Linq;
 using Xunit;
 using Order.IntegrationTests.Infrastructure.E2E;
-using System.Runtime.InteropServices;
+using Order.Api.ViewModels;
+using Order.Core.Application.UseCases.Orders.CreateOrder;
+using FluentAssertions;
+using Order.Api.ViewModels.Order;
 
 namespace Order.IntegrationTests.Infrastructure.Golden;
 
@@ -27,13 +31,26 @@ public class OrderGoldenTests
     public async Task Full_Order_Lifecycle_Should_Match_Golden_Snapshots()
     {
         // 1. Cria a ordem
-        var createResponse = await _client.PostAsync("/api/v1/orders", content: null);
+        var orderCreatedRequest = new CreateOrderRequest
+        {
+            ClientName = "Tulio Franco"
+        };
+
+        var createResponse = await _client.PostAsJsonAsync("/api/v1/orders", orderCreatedRequest, _jsonOptions);
         createResponse.EnsureSuccessStatusCode();
 
-        var createJson = await createResponse.Content.ReadAsStringAsync();
-        var createNode = JsonNode.Parse(createJson)!;
-        var orderNumber = createNode["data"]?["orderNumber"]!.GetValue<string>();
-        Assert.False(string.IsNullOrWhiteSpace(orderNumber));
+        var createResult =
+            await createResponse.Content.ReadFromJsonAsync<
+                ResultViewModel<CreateOrderResponse>>();
+
+        createResult.Should().NotBeNull();
+        createResult!.Data.Should().NotBeNull();
+
+        var created = createResult.Data!;
+        created.OrderNumber.Should().NotBeNullOrWhiteSpace();
+        created.clientName.Should().Be(orderCreatedRequest.ClientName);
+
+        var orderNumber = created.OrderNumber;
 
         // 2. Lista todas as ordens
         var listResponse = await _client.GetAsync("/api/v1/orders?page=0&pageSize=25");
@@ -41,8 +58,9 @@ public class OrderGoldenTests
 
         var listJson = await listResponse.Content.ReadAsStringAsync();
         var listNode = JsonNode.Parse(listJson)!;
+
         var totalItems = listNode["data"]?["totalItems"]!.GetValue<int>();
-        Assert.Equal(1, totalItems);
+        totalItems.Should().Be(1);
 
         // 3. Add item Iphone qtd 3
         await PostAddItemAsync(orderNumber, "Iphone 30", 100000.00m, 3);
@@ -56,7 +74,7 @@ public class OrderGoldenTests
         // 6. Adiciona "Notebook" com quantity = 1
         await PostAddItemAsync(orderNumber, "Notebook", 2500.00m, 1);
 
-        // 7. Da o get com o Number Id e bate os itens
+        // 7. Dá o get com o Number Id e bate os itens
         var get0Response = await _client.GetAsync($"/api/v1/orders/{orderNumber}");
         get0Response.EnsureSuccessStatusCode();
         var get0Json = await get0Response.Content.ReadAsStringAsync();
@@ -67,7 +85,7 @@ public class OrderGoldenTests
             .First(i => i!["description"]!.GetValue<string>() == "Iphone 30")!["productId"]!
             .GetValue<string>();
 
-        Assert.False(string.IsNullOrWhiteSpace(iphoneProductId));
+        iphoneProductId.Should().NotBeNullOrWhiteSpace();
 
         await AssertMatchesGoldenAsync("GetByOrderNumberResponse0.json", get0Json);
 
@@ -80,14 +98,13 @@ public class OrderGoldenTests
         get1Response.EnsureSuccessStatusCode();
         var get1Json = await get1Response.Content.ReadAsStringAsync();
 
-
         await AssertMatchesGoldenAsync("GetByOrderNumberResponse1.json", get1Json);
 
         // 10. Fecha a ordem
         var patchResponse = await _client.PatchAsync($"/api/v1/orders/{orderNumber}", content: null);
         patchResponse.EnsureSuccessStatusCode();
 
-        // 11. Da o get e bate os itens
+        // 11. Dá o get e bate os itens
         var get2Response = await _client.GetAsync($"/api/v1/orders/{orderNumber}");
         get2Response.EnsureSuccessStatusCode();
         var get2Json = await get2Response.Content.ReadAsStringAsync();
@@ -151,19 +168,15 @@ public class OrderGoldenTests
         }
     }
 
-
     private static string GetGoldenFilePath(string fileName)
     {
         var baseDir = AppContext.BaseDirectory;
-
         var projectDir = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", ".."));
         return Path.Combine(projectDir, "Order.IntegrationTests", "GoldenTest", "Data", fileName);
     }
 
-
     private static void AssertJsonEquals(JsonNode expected, JsonNode actual)
     {
-
         var expData = expected["data"]!;
         var actData = actual["data"]!;
 

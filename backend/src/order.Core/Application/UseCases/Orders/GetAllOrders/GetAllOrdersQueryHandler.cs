@@ -28,6 +28,7 @@ public class GetAllOrdersQueryHandler
 
         var mappedItems = pagedOrders.Items.Select(order => new GetAllOrdersResponse(
             order.OrderNumber.Value,
+            order.ClientName,
             order.Status.ToString(),
             order.CreatedAt,
             order.UpdatedAt,
