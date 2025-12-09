@@ -472,21 +472,21 @@ Neste cenário entram o módulo `assistant.Ai`, MongoDB e OpenAI.
 
 ```mermaid
 graph LR
-  subgraph Usuário
-    U[Usuário<br/>Perguntas em linguagem natural]
+  subgraph Usuario
+    U[Usuario - perguntas em linguagem natural]
   end
 
   subgraph Core
-    API[Order.Api<br/>(ASP.NET Core Web API)]
+    API[Order.Api (ASP.NET Core Web API)]
     DB[(PostgreSQL 16)]
     Cache[(Redis 7)]
     Outbox[(OutboxMessages)]
   end
 
   subgraph IA
-    IA[assistant.Ai API<br/>(Minimal API + OpenAI)]
+    IA[assistant.Ai API (Minimal API + OpenAI)]
     OpenAI[(OpenAI Chat API)]
-    Mongo[(MongoDB<br/>orderIa.history)]
+    Mongo[(MongoDB - orderIa.history)]
   end
 
   subgraph Ferramentas
