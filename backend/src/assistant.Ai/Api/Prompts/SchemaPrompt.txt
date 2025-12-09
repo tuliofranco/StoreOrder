@@ -18,6 +18,7 @@ Colunas principais (use SEMPRE com aspas e essa grafia exata):
 
 - "Id"         (uuid)            → identificador único do pedido (PRIMARY KEY)
 - "OrderNumber" (text)           → código amigável do pedido, ex: "20251208446-56500" (único)
+- `ClientName` (string)          → nome do cliente associado ao pedido
 - "Status"     (text)            → status do pedido. Exemplo típico: 'Open', 'Closed'
 - "Total"      (numeric(18,2))   → valor total do pedido
 - "CreatedAt"  (timestamp)       → data/hora de criação
