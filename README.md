@@ -439,14 +439,14 @@ Neste cen√°rio, consideramos apenas a API de pedidos, Postgres e Redis (sem o m√
 ```mermaid
 graph LR
   subgraph Cliente
-    C[Cliente HTTP<br/>Postman / Insomnia / Swagger]
+    C[Cliente HTTP / Postman / Insomnia / Swagger]
   end
 
   subgraph Backend
-    API[Order.Api<br/>(ASP.NET Core Web API)]
-    DB[(PostgreSQL 16<br/>orders_db)]
-    Cache[(Redis 7<br/>Cache de leitura)]
-    Outbox[(Tabela OutboxMessages)]
+    API[Order.Api (ASP.NET Core Web API)]
+    DB[PostgreSQL 16 (orders_db)]
+    Cache[Redis 7 (Cache de leitura)]
+    Outbox[OutboxMessages]
   end
 
   C --> API
