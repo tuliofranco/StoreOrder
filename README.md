@@ -278,7 +278,7 @@ Além das entidades de negócio, o domínio/infrastructure utiliza uma entidade 
 - Durante o `CommitAsync` da `EfUnitOfWork`:
   - Todos os `DomainEvents` de agregados rastreados são convertidos em `OutboxMessage`.
   - Os registros são inseridos na tabela `outbox_messages` na **mesma transação** do `SaveChanges`.
-- Um worker (presente ou futuro) pode ler `outbox_messages` não processadas, publicar em filas/event bus e marcar `Processed = true` / `ProcessedOn = now()`.
+- Um worker (não implementado) poderá ler `outbox_messages` não processadas, publicar em filas/event bus e marcar `Processed = true` / `ProcessedOn = now()`.
 
 ### Regras de negócio principais
 
