@@ -5,6 +5,8 @@ using Order.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Order.Api.Middlewares;
+using Order.Api.Internal;
+using Order.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +31,12 @@ var connectionString =
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.AddScoped<ISqlExecutionService, SqlExecutionService>();
+
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(Order.Core.Application.UseCases.Orders.CreateOrder.CreateOrderCommand).Assembly)
+);
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(
@@ -68,7 +76,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseExceptionHandler();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapControllers();
 

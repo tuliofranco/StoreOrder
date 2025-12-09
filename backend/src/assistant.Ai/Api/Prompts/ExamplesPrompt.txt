@@ -1,0 +1,43 @@
+
+--------------------------------
+CONVENÇÕES GERAIS PARA GERAR SQL
+--------------------------------
+
+1. Sempre utilize as tabelas: orders e order_items para perguntas sobre pedidos e itens.
+2. Sempre limite a quantidade de linhas com LIMIT, por exemplo:
+   LIMIT 200
+
+3. Para filtros de datas (use SEMPRE os nomes exatos das colunas com aspas):
+   - Pedidos criados hoje:
+     "CreatedAt"::date = CURRENT_DATE
+   - Pedidos criados ontem:
+     "CreatedAt"::date = CURRENT_DATE - INTERVAL '1 day'
+
+4. Para pedidos fechados:
+   - "Status" = 'Closed'
+   - "ClosedAt" IS NOT NULL
+   - "DeletedAt" IS NULL
+
+5. Para pedidos em aberto:
+   - "Status" = 'Open'
+   - "ClosedAt" IS NULL
+   - "DeletedAt" IS NULL
+
+6. Para evitar trazer registros "apagados":
+   - SEMPRE que fizer consultas de pedidos, inclua:
+     "DeletedAt" IS NULL
+
+7. Exemplo de JOIN entre pedidos e itens:
+   SELECT
+       o.id,
+       o.ordernumber,
+       o.status,
+       o.total,
+       i.productid,
+       i.description,
+       i.quantity,
+       i.unitprice
+   FROM orders o
+   JOIN order_items i ON i.orderid = o.id
+   WHERE o.deletedat IS NULL
+   LIMIT 200;
