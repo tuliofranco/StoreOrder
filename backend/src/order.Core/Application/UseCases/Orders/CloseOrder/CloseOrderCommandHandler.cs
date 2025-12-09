@@ -18,6 +18,7 @@ public sealed class CloseOrderCommandHandler
     {
         _repository = repository;
         _uow = uow;
+        _logger = logger;
     }
 
     public async Task<CloseOrderResponse> Handle(CloseOrderCommand request, CancellationToken ct = default)
