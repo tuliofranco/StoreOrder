@@ -439,14 +439,14 @@ Neste cenário, consideramos apenas a API de pedidos, Postgres e Redis (sem o m�
 ```mermaid
 graph LR
   subgraph Cliente
-    C[Cliente HTTP / Postman / Insomnia / Swagger]
+    C["Cliente HTTP / Postman / Insomnia / Swagger"]
   end
 
   subgraph Backend
-    API[Order.Api (ASP.NET Core Web API)]
-    DB[PostgreSQL 16 (orders_db)]
-    Cache[Redis 7 (Cache de leitura)]
-    Outbox[OutboxMessages]
+    API["Order.Api (ASP.NET Core Web API)"]
+    DB["PostgreSQL 16 (orders_db)"]
+    Cache["Redis 7 (cache de leitura)"]
+    Outbox["OutboxMessages"]
   end
 
   C --> API
@@ -473,34 +473,34 @@ Neste cenário entram o módulo `assistant.Ai`, MongoDB e OpenAI.
 ```mermaid
 graph LR
   subgraph Usuario
-    U[Usuario - perguntas em linguagem natural]
+    U["Usuario - perguntas em linguagem natural"]
   end
 
   subgraph Core
-    API[Order.Api (ASP.NET Core Web API)]
-    DB[(PostgreSQL 16)]
-    Cache[(Redis 7)]
-    Outbox[(OutboxMessages)]
+    API["Order.Api (ASP.NET Core Web API)"]
+    DB["PostgreSQL 16"]
+    Cache["Redis 7"]
+    Outbox["OutboxMessages"]
   end
 
   subgraph IA
-    IA[assistant.Ai API (Minimal API + OpenAI)]
-    OpenAI[(OpenAI Chat API)]
-    Mongo[(MongoDB - orderIa.history)]
+    IAService["assistant.Ai API (Minimal API + OpenAI)"]
+    OpenAI["OpenAI Chat API"]
+    Mongo["MongoDB (orderIa.history)"]
   end
 
   subgraph Ferramentas
-    PgAdmin[PgAdmin 4]
-    ME[Mongo Express]
+    PgAdmin["PgAdmin 4"]
+    ME["Mongo Express"]
   end
 
-  U --> IA
-  IA --> OpenAI
-  IA --> API
+  U --> IAService
+  IAService --> OpenAI
+  IAService --> API
   API --> DB
   API --> Cache
   DB --- Outbox
-  IA --> Mongo
+  IAService --> Mongo
 
   PgAdmin --- DB
   ME --- Mongo
