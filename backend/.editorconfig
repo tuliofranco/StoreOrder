@@ -5,3 +5,5 @@ root = true
 dotnet_diagnostic.CA2007.severity = none
 
 dotnet_diagnostic.MA0004.severity = none
+#pragma warning disable CA1848
+dotnet_diagnostic.CA1848.severity = none
