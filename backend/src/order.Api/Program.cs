@@ -8,6 +8,10 @@ using Order.Api.Middlewares;
 using Order.Api.Controllers.Internal;
 using Order.Api.Services;
 using Order.Infrastructure.Logging;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Order.Infrastructure.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +79,11 @@ builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(Order.Core.Application.UseCases.Orders.CreateOrder.CreateOrderCommand).Assembly)
 );
 
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => HealthCheckResult.Healthy("API alive"))
+    .AddCheck<PostgresDbHealthCheck>("postgres")
+    .AddCheck<RedisDbHealthCheck>("redis");
+
 var app = builder.Build();
 
 
@@ -96,6 +105,33 @@ app.UseExceptionHandler();
 
 
 app.MapControllers();
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapGet("/health-summary", async (HealthCheckService healthService) =>
+{
+    var report = await healthService.CheckHealthAsync();
+
+    var result = new
+    {
+        status = report.Status.ToString(),
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            duration = e.Value.Duration.ToString()
+        })
+    };
+
+    return Results.Ok(result);
+})
+.WithName("OrderApiHealthSummary")
+.WithTags("Health");
 
 app.Run();
 #pragma warning disable CA1515 // Considere tornar internos os tipos públicos

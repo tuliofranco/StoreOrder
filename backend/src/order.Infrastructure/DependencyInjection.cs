@@ -5,7 +5,7 @@ using Order.Infrastructure.Persistence;
 using Order.Infrastructure.Persistence.Repositories;
 using Order.Core.Application.Abstractions;
 using Order.Infrastructure.Caching;
-
+using StackExchange.Redis;
 
 namespace Order.Infrastructure;
 
@@ -22,11 +22,15 @@ public static class DependencyInjection
 
         if (!string.IsNullOrWhiteSpace(redisConnection))
         {
+            var mux = ConnectionMultiplexer.Connect(redisConnection);
+            services.AddSingleton<IConnectionMultiplexer>(mux);
+
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = redisConnection;
                 options.InstanceName = "order-service:";
             });
+
             services.AddScoped<ICacheService, DistributedCacheService>();
         }
         else

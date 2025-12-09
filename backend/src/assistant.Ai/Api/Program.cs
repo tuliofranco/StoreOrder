@@ -6,6 +6,11 @@ using Assistant.Ai.Application;
 using OpenAI;
 using Assistant.Ai.Application.Services;
 using Assistant.Ai.Application.Entities;
+using Assistant.Ai.Api.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MongoDB.Driver;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using HealthChecks.UI.Client;
 
 Env.TraversePath().Load();
 
@@ -38,6 +43,18 @@ builder.Services.AddCors(options =>
          .AllowAnyMethod());
 });
 
+builder.Services.AddSingleton<IMongoClient>(sp =>
+{
+    var conn = Environment.GetEnvironmentVariable("MONGO_CONNECTION")
+              ?? throw new Exception("MONGO_CONNECTION missing");
+    return new MongoClient(conn);
+});
+
+builder.Services
+    .AddHealthChecks()
+    .AddCheck<AiApiHealthCheck>("assitant-api")
+    .AddCheck<MongoDbHealthCheck>("assistant-mongo");
+
 var app = builder.Build();
 
 app.UseSwagger();
@@ -68,6 +85,35 @@ app.MapGet("/history", async (IAHistoryService history) =>
     return Results.Ok(items);
 })
 .WithName("IaHistory")
-.WithOpenApi();;
+.WithOpenApi();
+
+
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+
+app.MapGet("/health-summary", async (HealthCheckService healthService) =>
+{
+    var report = await healthService.CheckHealthAsync();
+
+    var result = new
+    {
+        status = report.Status.ToString(),
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            duration = e.Value.Duration.ToString()
+        })
+    };
+
+    return Results.Ok(result);
+})
+.WithName("HealthSummary")
+.WithOpenApi(); 
 
 app.Run();
