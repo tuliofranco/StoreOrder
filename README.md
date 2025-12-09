@@ -260,6 +260,26 @@ Propriedades principais:
 * `UnitPrice`
 * `Subtotal` (`Quantity * UnitPrice`)
 
+### Entidade `OutboxMessage`
+
+Além das entidades de negócio, o domínio/infrastructure utiliza uma entidade técnica para o **Outbox Pattern**.
+
+**Propriedades principais**
+
+- `Id` (`Guid`)
+- `Type` (`string`)
+- `Payload` (`string`)
+- `OccurredOn` (`DateTime`)
+- `Processed` (`bool`)
+- `ProcessedOn` (`DateTime?`)
+
+**Uso no fluxo**
+
+- Durante o `CommitAsync` da `EfUnitOfWork`:
+  - Todos os `DomainEvents` de agregados rastreados são convertidos em `OutboxMessage`.
+  - Os registros são inseridos na tabela `outbox_messages` na **mesma transação** do `SaveChanges`.
+- Um worker (presente ou futuro) pode ler `outbox_messages` não processadas, publicar em filas/event bus e marcar `Processed = true` / `ProcessedOn = now()`.
+
 ### Regras de negócio principais
 
 * Um pedido **sempre nasce `Open`**.
