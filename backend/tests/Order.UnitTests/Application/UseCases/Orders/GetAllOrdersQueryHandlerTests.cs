@@ -9,18 +9,21 @@ using Order.Core.Application.UseCases.Orders.GetAllOrders;
 using Order.Core.Domain.Orders.Enums;
 using OrderEntity = Order.Core.Domain.Orders.Order;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
 public class GetAllOrdersQueryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
+    private readonly Mock<ILogger<GetAllOrdersQueryHandler>> _loggerMock;
     private readonly GetAllOrdersQueryHandler _handler;
 
     public GetAllOrdersQueryHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
-        _handler = new GetAllOrdersQueryHandler(_orderRepositoryMock.Object);
+        _loggerMock = new Mock<ILogger<GetAllOrdersQueryHandler>>();
+        _handler = new GetAllOrdersQueryHandler(_orderRepositoryMock.Object, _loggerMock.Object);
     }
 
     [Fact]

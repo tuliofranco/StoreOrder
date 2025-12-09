@@ -11,6 +11,7 @@ using OrderEntity = Order.Core.Domain.Orders.Order;
 using OrderItemEntity = Order.Core.Domain.Orders.OrderItem;
 using Xunit;
 using Order.Core.Application.Common.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
@@ -18,16 +19,21 @@ public class CloseOrderCommandHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ILogger<CloseOrderCommandHandler>> _loggerMock;
+
+    
     private readonly CloseOrderCommandHandler _handler;
 
     public CloseOrderCommandHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _loggerMock = new Mock<ILogger<CloseOrderCommandHandler>>();
 
         _handler = new CloseOrderCommandHandler(
             _orderRepositoryMock.Object,
-            _unitOfWorkMock.Object
+            _unitOfWorkMock.Object,
+            _loggerMock.Object
         );
     }
 

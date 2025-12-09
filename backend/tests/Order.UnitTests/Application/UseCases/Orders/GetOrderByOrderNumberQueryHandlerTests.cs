@@ -11,6 +11,7 @@ using OrderItemEntity = Order.Core.Domain.Orders.OrderItem;
 using Xunit;
 using Order.Core.Application.Abstractions;
 using Order.Core.Application.Common.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
@@ -18,13 +19,21 @@ public class GetOrderByOrderNumberQueryHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<ICacheService> _orderCacheMock;
+    private readonly Mock<ILogger<GetOrderByOrderNumberQueryHandler>> _loggerMock;
     private readonly GetOrderByOrderNumberQueryHandler _handler;
 
     public GetOrderByOrderNumberQueryHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _orderCacheMock = new Mock<ICacheService>();
-        _handler = new GetOrderByOrderNumberQueryHandler(_orderRepositoryMock.Object, _orderCacheMock!.Object);
+        _loggerMock = new Mock<ILogger<GetOrderByOrderNumberQueryHandler>>();
+
+
+        _handler = new GetOrderByOrderNumberQueryHandler(
+            _orderRepositoryMock.Object,
+            _orderCacheMock!.Object,
+            _loggerMock.Object
+            );
     }
 
     [Fact]

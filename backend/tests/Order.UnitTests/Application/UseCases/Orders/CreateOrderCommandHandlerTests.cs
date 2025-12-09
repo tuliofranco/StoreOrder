@@ -8,6 +8,8 @@ using OrderEntity = Order.Core.Domain.Orders.Order;
 
 using Xunit;
 using Order.Core.Domain.Orders.ValueObjects;
+using Microsoft.Extensions.Logging;
+using Order.Core.Application.UseCases.Orders.GetAllOrders;
 
 namespace Order.UnitTests.Application.UseCases.Orders;
 
@@ -15,16 +17,19 @@ public class CreateOrderCommandHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ILogger<CreateOrderCommandHandler>> _loggerMock;
     private readonly CreateOrderCommandHandler _handler;
 
     public CreateOrderCommandHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _loggerMock = new Mock<ILogger<CreateOrderCommandHandler>>();
 
         _handler = new CreateOrderCommandHandler(
             _orderRepositoryMock.Object,
-            _unitOfWorkMock.Object
+            _unitOfWorkMock.Object,
+            _loggerMock.Object
         );
     }
 

@@ -12,6 +12,7 @@ using OrderEntity = Order.Core.Domain.Orders.Order;
 using OrderItemEntity = Order.Core.Domain.Orders.OrderItem;
 using Xunit;
 using Order.Core.Application.Common.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Order.UnitTests.Application.UseCases.OrderItem;
 
@@ -19,16 +20,19 @@ public class RemoveOrderItemCommandHandlerTests
 {
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<IUnitOfWork> _unitOfWorkMock;
+    private readonly Mock<ILogger<RemoveOrderItemCommandHandler>> _loggerMock;
     private readonly RemoveOrderItemCommandHandler _handler;
 
     public RemoveOrderItemCommandHandlerTests()
     {
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _unitOfWorkMock = new Mock<IUnitOfWork>();
+        _loggerMock = new Mock<ILogger<RemoveOrderItemCommandHandler>>();
 
         _handler = new RemoveOrderItemCommandHandler(
             _orderRepositoryMock.Object,
-            _unitOfWorkMock.Object
+            _unitOfWorkMock.Object,
+            _loggerMock.Object
         );
     }
 
